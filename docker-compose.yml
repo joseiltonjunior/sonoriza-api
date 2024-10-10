@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  sonorizadb-pg:
+    image: bitnami/postgresql
+    container_name: sonorizadb
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRESQL_USERNAME=docker
+      - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=sonorizadb

@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MusicalGenre {
+  id         String   @id @default(uuid())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  Music      Music[]
+
+  @@map("musicalGenres")
+}
+
+model Music {
+  id             String       @id @default(uuid())
+  album          String
+  title          String
+  artwork        String
+  color          String
+  url            String
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @default(now()) @updatedAt
+  artists        Artist[]     @relation("ArtistMusic")
+  musicalGenre   MusicalGenre @relation(fields: [musicalGenreId], references: [id])
+  musicalGenreId String
+
+  @@map("musics")
+}
+
+model Artist {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+  likes      Int
+  name       String
+  photoURL   String
+
+  musics Music[] @relation("ArtistMusic")
+
+  @@map("artists")
+}
