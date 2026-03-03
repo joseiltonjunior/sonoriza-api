@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import * as bodyParser from 'body-parser'
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 
 import { Env } from './env'
 import { ConfigService } from '@nestjs/config'
@@ -8,8 +9,15 @@ import { ConfigService } from '@nestjs/config'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // logger: false,
-    bodyParser: false,
   })
+
+  const config = new DocumentBuilder()
+    .setTitle('Sonoriza API')
+    .setDescription('API documentation for Sonoriza')
+    .setVersion('1.0')
+    .build()
+  const document = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api', app, document)
 
   app.use(bodyParser.json())
 
