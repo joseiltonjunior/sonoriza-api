@@ -4,6 +4,23 @@ export class UpdateMusicRequestSwaggerDTO {
   @ApiProperty({ example: 'Masada - Remastered', required: false })
   title?: string
 
+  @ApiProperty({ example: 'masada-remastered', required: false })
+  slug?: string
+
+  @ApiProperty({
+    example: 'https://cdn.sonoriza.com/musics/masada.mp3',
+    required: false,
+    description: 'Alias accepted: url',
+  })
+  audioPath?: string
+
+  @ApiProperty({
+    example: 'https://cdn.sonoriza.com/musics/masada.mp3',
+    required: false,
+    description: 'Alias of audioPath',
+  })
+  url?: string
+
   @ApiProperty({
     example: 'Best Of Deluxe',
     required: false,
@@ -15,8 +32,17 @@ export class UpdateMusicRequestSwaggerDTO {
     example: 'https://cdn.sonoriza.com/covers/masada.jpg',
     required: false,
     nullable: true,
+    description: 'Alias accepted: artwork',
   })
   coverPath?: string | null
+
+  @ApiProperty({
+    example: 'https://cdn.sonoriza.com/covers/masada.jpg',
+    required: false,
+    nullable: true,
+    description: 'Alias of coverPath',
+  })
+  artwork?: string | null
 
   @ApiProperty({
     example: '#000000',
@@ -24,6 +50,12 @@ export class UpdateMusicRequestSwaggerDTO {
     nullable: true,
   })
   color?: string | null
+
+  @ApiProperty({ example: 150, required: false })
+  like?: number
+
+  @ApiProperty({ example: 1000, required: false })
+  view?: number
 
   @ApiProperty({
     example: 300,
@@ -45,4 +77,11 @@ export class UpdateMusicRequestSwaggerDTO {
     nullable: true,
   })
   genreId?: string | null
+
+  @ApiProperty({
+    type: [String],
+    required: false,
+    example: ['artist-id-1', 'artist-id-2'],
+  })
+  artistIds?: string[]
 }

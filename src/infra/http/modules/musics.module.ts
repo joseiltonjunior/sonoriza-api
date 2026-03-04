@@ -16,6 +16,16 @@ import {
 import { FetchMusicsController } from '../controllers/musics/fetch-musics.controller'
 import { UpdateMusicController } from '../controllers/musics/update-music.controller'
 import { DeleteMusicController } from '../controllers/musics/delete-music.controller'
+import {
+  ArtistRepository,
+  ArtistRepositoryToken,
+} from '@/domain/musics/repositories/artist-repository'
+import {
+  GenreRepository,
+  GenreRepositoryToken,
+} from '@/domain/musics/repositories/genre-repository'
+import { PrismaArtistRepository } from '@/infra/database/prisma/prisma-artist.repository.service'
+import { PrismaGenreRepository } from '@/infra/database/prisma/prisma-genre.repository.service'
 
 @Module({
   controllers: [
@@ -31,9 +41,21 @@ import { DeleteMusicController } from '../controllers/musics/delete-music.contro
       useClass: PrismaMusicRepository,
     },
     {
+      provide: ArtistRepositoryToken,
+      useClass: PrismaArtistRepository,
+    },
+    {
+      provide: GenreRepositoryToken,
+      useClass: PrismaGenreRepository,
+    },
+    {
       provide: CreateMusicUseCase,
-      useFactory: (repo: MusicRepository) => new CreateMusicUseCase(repo),
-      inject: [MusicRepositoryToken],
+      useFactory: (
+        musicRepo: MusicRepository,
+        artistRepo: ArtistRepository,
+        genreRepo: GenreRepository,
+      ) => new CreateMusicUseCase(musicRepo, artistRepo, genreRepo),
+      inject: [MusicRepositoryToken, ArtistRepositoryToken, GenreRepositoryToken],
     },
     {
       provide: FetchMusicsUseCase,
