@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { envSchema } from './env'
+import { HttpModule } from './http/http.module'
+import { APP_FILTER } from '@nestjs/core'
+import { DomainHttpExceptionFilter } from './http/filters/domain-http-exception.filter'
 
 @Module({
   imports: [
@@ -8,8 +11,14 @@ import { envSchema } from './env'
       validate: (env) => envSchema.parse(env),
       isGlobal: true,
     }),
+    HttpModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: DomainHttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

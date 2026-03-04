@@ -21,10 +21,15 @@ model Music {
   coverPath   String?   @map("cover_path")
   audioPath   String    @map("audio_path")
   color       String?
+  like        Int       @default(0)
+  view        Int       @default(0)
   durationSec Int?      @map("duration_seconds")
   releaseDate DateTime? @map("release_date")
 
   genreId String? @map("genre_id")
+  genre   Genre?  @relation(fields: [genreId], references: [id])
+
+  artists MusicArtist[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -32,4 +37,62 @@ model Music {
 
   @@index([genreId])
   @@map("musics")
+}
+
+model Artist {
+  id       String @id @default(uuid())
+  name     String
+  photoURL String @map("photo_url")
+  like     Int    @default(0)
+
+  musics        MusicArtist[]
+  musicalGenres ArtistGenre[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("artists")
+}
+
+model Genre {
+  id   String @id @default(uuid())
+  name String @unique
+
+  musics  Music[]
+  artists ArtistGenre[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("genres")
+}
+
+model MusicArtist {
+  musicId  String @map("music_id")
+  artistId String @map("artist_id")
+
+  music  Music  @relation(fields: [musicId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([musicId, artistId])
+  @@index([artistId])
+  @@map("music_artists")
+}
+
+model ArtistGenre {
+  artistId String @map("artist_id")
+  genreId  String @map("genre_id")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  genre  Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([artistId, genreId])
+  @@index([genreId])
+  @@map("artist_genres")
 }
