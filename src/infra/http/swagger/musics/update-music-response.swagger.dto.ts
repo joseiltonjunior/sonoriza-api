@@ -1,12 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
+import { MusicResponseSwaggerDTO } from './music-response.swagger.dto'
 
-export class UpdateMusicResponseSwaggerDTO {
-  @ApiProperty({ example: 'uuid' })
+export class UpdateMusicResponseSwaggerDTO extends MusicResponseSwaggerDTO {
+  @ApiProperty({ example: 'music-id-uuid' })
   id!: string
-
-  @ApiProperty({ example: 'Masada - Remastered' })
-  title!: string
-
-  @ApiProperty({ example: 'masada' })
-  slug!: string
 }

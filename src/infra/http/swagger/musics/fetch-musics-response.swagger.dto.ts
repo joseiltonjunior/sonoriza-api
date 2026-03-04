@@ -1,15 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-
-class MusicItemSwaggerDTO {
-  @ApiProperty({ example: 'uuid' })
-  id!: string
-
-  @ApiProperty({ example: 'Masada' })
-  title!: string
-
-  @ApiProperty({ example: 'masada' })
-  slug!: string
-}
+import { MusicResponseSwaggerDTO } from './music-response.swagger.dto'
 
 class FetchMusicsMetaSwaggerDTO {
   @ApiProperty({ example: 100 })
@@ -23,8 +13,8 @@ class FetchMusicsMetaSwaggerDTO {
 }
 
 export class FetchMusicsResponseSwaggerDTO {
-  @ApiProperty({ type: [MusicItemSwaggerDTO] })
-  data!: MusicItemSwaggerDTO[]
+  @ApiProperty({ type: [MusicResponseSwaggerDTO] })
+  data!: MusicResponseSwaggerDTO[]
 
   @ApiProperty({ type: FetchMusicsMetaSwaggerDTO })
   meta!: FetchMusicsMetaSwaggerDTO

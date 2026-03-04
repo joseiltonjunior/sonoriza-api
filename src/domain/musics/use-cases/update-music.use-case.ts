@@ -16,6 +16,7 @@ export class UpdateMusicUseCase {
 
     await this.musicRepository.update(music)
 
-    return music
+    const persisted = await this.musicRepository.findById(id)
+    return persisted ?? music
   }
 }

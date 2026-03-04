@@ -8,6 +8,7 @@ import { FetchMusicsUseCase } from '@/domain/musics/use-cases/fetch-music.use-ca
 
 import { ApiTags, ApiOperation, ApiOkResponse, ApiQuery } from '@nestjs/swagger'
 import { FetchMusicsResponseSwaggerDTO } from '../../swagger/musics/fetch-musics-response.swagger.dto'
+import { MusicPresenter } from '../../presenters/music.presenter'
 
 const fetchMusicsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
@@ -40,6 +41,11 @@ export class FetchMusicsController {
       page: query.page,
     }
 
-    return this.fetchMusicsUseCase.execute(dto)
+    const response = await this.fetchMusicsUseCase.execute(dto)
+
+    return {
+      data: response.data.map(MusicPresenter.toHTTP),
+      meta: response.meta,
+    }
   }
 }

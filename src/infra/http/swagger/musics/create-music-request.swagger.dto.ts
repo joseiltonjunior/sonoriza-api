@@ -9,8 +9,10 @@ export class CreateMusicRequestSwaggerDTO {
 
   @ApiProperty({
     example: 'https://cdn.sonoriza.com/musics/masada.mp3',
+    required: false,
+    description: 'Alias of audioPath',
   })
-  audioPath!: string
+  url?: string
 
   @ApiProperty({
     example: 'Best Of',
@@ -23,8 +25,9 @@ export class CreateMusicRequestSwaggerDTO {
     example: 'https://cdn.sonoriza.com/covers/masada.jpg',
     required: false,
     nullable: true,
+    description: 'Alias of coverPath',
   })
-  coverPath?: string | null
+  artwork?: string | null
 
   @ApiProperty({
     example: '#c53a27',
@@ -32,6 +35,12 @@ export class CreateMusicRequestSwaggerDTO {
     nullable: true,
   })
   color?: string | null
+
+  @ApiProperty({ example: 10, required: false, nullable: true })
+  like?: number | null
+
+  @ApiProperty({ example: 250, required: false, nullable: true })
+  view?: number | null
 
   @ApiProperty({
     example: 245,
@@ -54,4 +63,11 @@ export class CreateMusicRequestSwaggerDTO {
     nullable: true,
   })
   genreId?: string | null
+
+  @ApiProperty({
+    type: [String],
+    example: ['artist-id-1', 'artist-id-2'],
+    required: false,
+  })
+  artistIds?: string[]
 }
