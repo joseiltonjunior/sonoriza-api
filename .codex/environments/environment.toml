@@ -9,3 +9,8 @@ script = ""
 name = "Executar"
 icon = "run"
 command = "pnpm start:dev"
+
+[[actions]]
+name = "test:unit"
+icon = "tool"
+command = "pnpm test"

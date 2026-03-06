@@ -59,6 +59,11 @@ export class CreateAccountController {
       password: body.password,
     }
     const created = await this.createUserUseCase.execute(dto)
-    return { id: created.id, name: created.name, email: created.email }
+    return {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      photoUrl: created.photoUrl,
+    }
   }
 }

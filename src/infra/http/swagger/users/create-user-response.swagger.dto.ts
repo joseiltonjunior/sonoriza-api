@@ -16,4 +16,11 @@ export class CreateUserResponseSwaggerDTO {
     example: 'seupauleo@gmail.com',
   })
   email!: string
+
+  @ApiProperty({
+    example: 'https://cdn.example.com/profiles/seu-paulo.jpg',
+    nullable: true,
+    required: false,
+  })
+  photoUrl!: string | null
 }

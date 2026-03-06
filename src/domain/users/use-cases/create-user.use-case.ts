@@ -28,8 +28,9 @@ export class CreateUserUseCase {
       id: created.id,
       name: created.name,
       email: created.email,
-      createdAt: created.createdAt,
       role: created.role,
+      photoUrl: created.photoUrl,
+      createdAt: created.createdAt,
     }
   }
 }

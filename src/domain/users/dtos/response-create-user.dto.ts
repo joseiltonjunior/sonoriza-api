@@ -5,6 +5,6 @@ export type ResponseCreateUserDTO = {
   name: string
   email: string
   role: Role
-
+  photoUrl: string | null
   createdAt: Date
 }
