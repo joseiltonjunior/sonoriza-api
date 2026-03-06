@@ -1,16 +1,20 @@
 # Sonoriza API
 
-API backend do Sonoriza, construida com NestJS + Prisma + PostgreSQL.
+![Sonoriza Logo](https://i.ibb.co/hZ7QNB3/sonoriza.png)
 
-## Visao geral
+<!-- Project developed by [Joseilton Junior](https://github.com/joseiltonjunior) -->
 
-Este projeto expoe endpoints para gestao de musicas com:
-- criacao de musica
-- listagem paginada
-- atualizacao
-- soft delete
-- documentacao Swagger
-- validacao de payload com Zod
+Sonoriza backend API built with NestJS + Prisma + PostgreSQL.
+
+## Overview
+
+This project exposes endpoints for:
+- user authentication with JWT (RS256)
+- user management (account, session, profile)
+- music CRUD (with soft delete)
+- music genre CRUD (with soft delete)
+- Swagger documentation
+- payload validation with Zod
 
 ## Stack
 
@@ -19,159 +23,152 @@ Este projeto expoe endpoints para gestao de musicas com:
 - Prisma
 - PostgreSQL
 - Swagger (`/api`)
-- Jest (testes unitarios)
+- Vitest (unit and e2e)
 
-## Requisitos
+## Requirements
 
 - Node.js 20+
 - pnpm
-- Docker (opcional, para subir o banco local)
+- Docker (optional, to run a local database)
 
-## Setup rapido
+## Quick setup
 
-### 1) Instalar dependencias
+### 1) Install dependencies
 
 ```bash
 pnpm install
 ```
 
-### 2) Subir PostgreSQL (opcional, recomendado)
+### 2) Start PostgreSQL (optional, recommended)
 
 ```bash
 docker compose up -d
 ```
 
-O `docker-compose.yml` ja sobe um banco com:
+The `docker-compose.yml` starts a database with:
 - host: `localhost`
-- porta: `5432`
+- port: `5432`
 - user: `sonoriza`
 - password: `sonoriza`
 - database: `sonoriza`
 
-### 3) Configurar ambiente
+### 3) Configure environment
 
-Crie/ajuste o arquivo `.env`:
+Create/update the `.env` file:
 
 ```env
 DATABASE_URL="postgresql://sonoriza:sonoriza@localhost:5432/sonoriza?schema=public"
 PORT=3333
+JWT_PRIVATE_KEY="<BASE64_PRIVATE_KEY_PEM>"
+JWT_PUBLIC_KEY="<BASE64_PUBLIC_KEY_PEM>"
 ```
 
-### 4) Rodar migrations
+### 4) Generate Prisma Client and apply migrations
 
 ```bash
-pnpm exec prisma migrate deploy
+pnpm prisma generate
+pnpm prisma migrate deploy
 ```
 
-Para desenvolvimento:
+For development:
 
 ```bash
-pnpm exec prisma migrate dev
+pnpm prisma migrate dev
 ```
 
-### 5) Iniciar API
+### 5) Start the API
 
 ```bash
 pnpm start:dev
 ```
 
-API em: `http://localhost:3333`
-Swagger em: `http://localhost:3333/api`
+API: `http://localhost:3333`
+Swagger: `http://localhost:3333/api`
 
 ## Scripts
 
-- `pnpm build` - build de producao
-- `pnpm start` - start padrao
-- `pnpm start:dev` - start com watch
-- `pnpm start:prod` - executa `dist`
+- `pnpm build` - production build
+- `pnpm start` - default start
+- `pnpm start:dev` - start with watch
+- `pnpm start:prod` - run `dist`
 - `pnpm lint` - lint
-- `pnpm format` - formatacao
-- `pnpm test` - testes unitarios (Jest)
-- `pnpm test:watch` - testes em watch
-- `pnpm test:cov` - cobertura
+- `pnpm format` - format
+- `pnpm test` - unit tests
+- `pnpm test:e2e` - e2e tests
+- `pnpm test:cov` - unit coverage
+- `pnpm test:e2e:cov` - e2e coverage
 
-## Endpoints de Musics
+## Authentication and authorization
+
+- JWT signed with `RS256`.
+- Current payload: `sub` (user id) and `role` (`USER` | `ADMIN`).
+- Write routes for `musics` and `genres` are protected by JWT and `ADMIN` role.
+- Profile routes (`/me`) require an authenticated user.
+
+## Endpoints
+
+### Users
+
+Base paths:
+- `/accounts`
+- `/sessions`
+- `/me`
+
+- `POST /accounts` - create account
+- `POST /sessions` - authenticate and return `access_token`
+- `GET /me` - return authenticated user profile
+- `PATCH /me` - update authenticated user name/email/photoUrl
+- `DELETE /me` - soft delete own account
+
+### Musics
 
 Base path: `/musics`
 
-### `POST /musics`
-Cria uma musica.
+- `POST /musics` - create music (ADMIN)
+- `GET /musics?page=1` - paginated list (public)
+- `PATCH /musics/:id` - update music (ADMIN)
+- `DELETE /musics/:id` - soft delete music (ADMIN)
 
-Campos principais do body:
-- `title` (string, obrigatorio)
-- `slug` (string, obrigatorio)
-- `url` ou `audioPath` (um dos dois obrigatorio)
-- `album` (string | null)
-- `artwork` ou `coverPath` (aliases)
-- `color` (string | null)
-- `like` (number | null)
-- `view` (number | null)
-- `durationSec` (number | null)
-- `releaseDate` (ISO string | null)
-- `genreId` (string | null)
-- `artistIds` (string[])
+### Genres
 
-Retorno (shape atual):
-- `id`, `title`, `url`, `genre`, `album`, `artwork`, `color`, `like`, `view`, `artists`
+Base path: `/genres`
 
-### `GET /musics?page=1`
-Lista musicas paginadas.
+- `POST /genres` - create genre (ADMIN)
+- `GET /genres?page=1` - paginated list (public)
+- `PATCH /genres/:id` - update genre (ADMIN)
+- `DELETE /genres/:id` - soft delete genre (ADMIN)
 
-Retorno:
-- `data`: array de musicas
-- `meta`: `{ total, page, lastPage }`
-
-### `PATCH /musics/:id`
-Atualiza campos da musica.
-
-### `DELETE /musics/:id`
-Soft delete da musica (`204`).
-
-## Erros de dominio esperados
-
-No fluxo de criacao de musica:
-- `MUSIC_SLUG_ALREADY_EXISTS` (409)
-- `GENRE_NOT_FOUND` (404)
-- `ARTIST_NOT_FOUND` (404)
-
-## Testes
-
-Exemplo para rodar apenas os testes de use-cases de musicas:
-
-```bash
-pnpm test -- src/domain/musics/use-cases
-```
-
-Exemplo para rodar um teste especifico:
-
-```bash
-pnpm test -- src/domain/musics/use-cases/create-music.use-case.spec.ts
-```
-
-## Estrutura (resumo)
+## Structure (summary)
 
 ```text
 src/
   domain/
+    users/
     musics/
-      entities/
-      dtos/
-      use-cases/
-      repositories/
-      errors/
+    genres/
   infra/
+    auth/
     database/prisma/
     http/controllers/
-    http/swagger/
+    http/modules/
     http/presenters/
+    http/swagger/
     main.ts
 prisma/
   schema.prisma
   migrations/
+test/
+  setup-e2e.ts
 ```
 
-## Observacoes
+## Notes
 
-- O projeto usa soft delete para musicas.
-- O endpoint Swagger e montado em `/api` no bootstrap da aplicacao.
-- Validacoes de request sao feitas com Zod nos controllers.
+- The project uses soft delete for `users`, `musics`, `genres`, and `artists`.
+- Request validation is done with Zod in controllers.
+- Swagger is served at `/api`.
+- On Windows, if `pnpm prisma generate` fails with a lock on `query_engine-windows.dll.node`, stop running Node processes (`nest`, `vitest --watch`) and run it again.
+
+## Credits
+
+- Developed by [Joseilton Junior](https://github.com/joseiltonjunior)
+- Technical founder and full stack engineer with systemic product vision and pragmatic architecture mindset.
