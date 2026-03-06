@@ -1,4 +1,4 @@
-import { Controller, Delete, Param, HttpCode } from '@nestjs/common'
+import { Controller, Delete, Param, HttpCode, UseGuards } from '@nestjs/common'
 
 import {
   ApiTags,
@@ -9,9 +9,11 @@ import {
 } from '@nestjs/swagger'
 
 import { DeleteMusicUseCase } from '@/domain/musics/use-cases/delete-music.use-case'
+import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
 @ApiTags('Musics')
 @Controller('/musics')
+@UseGuards(JwtAuthGuard)
 export class DeleteMusicController {
   constructor(private deleteMusicUseCase: DeleteMusicUseCase) {}
 

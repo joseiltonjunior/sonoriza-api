@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Post, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe'
 import { CreateMusicUseCase } from '@/domain/musics/use-cases/create-music.use-case'
@@ -17,6 +17,7 @@ import {
 import { CreateMusicRequestSwaggerDTO } from '../../swagger/musics/create-music-request.swagger.dto'
 import { MusicResponseSwaggerDTO } from '../../swagger/musics/music-response.swagger.dto'
 import { MusicPresenter } from '../../presenters/music.presenter'
+import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
 const createMusicSchema = z
   .object({
@@ -46,6 +47,7 @@ const bodyValidationPipe = new ZodValidationPipe(createMusicSchema)
 
 @ApiTags('Musics')
 @Controller('/musics')
+@UseGuards(JwtAuthGuard)
 export class CreateMusicController {
   constructor(private createMusicUseCase: CreateMusicUseCase) {}
 
