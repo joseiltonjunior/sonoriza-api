@@ -3,16 +3,16 @@ import { Music } from '../entities/music'
 import { MusicRepository } from '../repositories/music-repository'
 import { CreateMusicDTO } from '../dtos/create-music.dto'
 import { MusicSlugAlreadyExistsError } from '../errors/music-slug-already-exists.error'
-import { ArtistRepository } from '../repositories/artist-repository'
-import { GenreRepository } from '../repositories/genre-repository'
+import { ArtistsRepository } from '@/domain/artists/repositories/artists-repository'
+import { GenresRepository } from '@/domain/genres/repositories/genres-repository'
 import { GenreNotFoundError } from '../errors/genre-not-found.error'
 import { ArtistNotFoundError } from '../errors/artist-not-found.error'
 
 export class CreateMusicUseCase {
   constructor(
     private musicRepository: MusicRepository,
-    private artistRepository: ArtistRepository,
-    private genreRepository: GenreRepository,
+    private artistsRepository: ArtistsRepository,
+    private genresRepository: GenresRepository,
   ) {}
 
   async execute(data: CreateMusicDTO): Promise<Music> {
@@ -23,7 +23,7 @@ export class CreateMusicUseCase {
     }
 
     if (data.genreId) {
-      const genre = await this.genreRepository.findById(data.genreId)
+      const genre = await this.genresRepository.findById(data.genreId)
 
       if (!genre) {
         throw new GenreNotFoundError(data.genreId)
@@ -34,7 +34,7 @@ export class CreateMusicUseCase {
       const uniqueArtistIds = [...new Set(data.artistIds)]
 
       for (const artistId of uniqueArtistIds) {
-        const artist = await this.artistRepository.findById(artistId)
+        const artist = await this.artistsRepository.findById(artistId)
 
         if (!artist) {
           throw new ArtistNotFoundError(artistId)

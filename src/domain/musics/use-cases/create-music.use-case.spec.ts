@@ -5,24 +5,10 @@ import { MusicSlugAlreadyExistsError } from '../errors/music-slug-already-exists
 import { GenreNotFoundError } from '../errors/genre-not-found.error'
 import { ArtistNotFoundError } from '../errors/artist-not-found.error'
 import { InMemoryMusicRepository } from '../repositories/in-memory-music.repository'
-import { ArtistRepository } from '../repositories/artist-repository'
-import { GenreRepository } from '../repositories/genre-repository'
-
-class InMemoryArtistRepository implements ArtistRepository {
-  constructor(private ids: string[] = []) {}
-
-  async findById(id: string): Promise<{ id: string } | null> {
-    return this.ids.includes(id) ? { id } : null
-  }
-}
-
-class InMemoryGenreRepository implements GenreRepository {
-  constructor(private ids: string[] = []) {}
-
-  async findById(id: string): Promise<{ id: string } | null> {
-    return this.ids.includes(id) ? { id } : null
-  }
-}
+import { InMemoryArtistsRepository } from '@/domain/artists/repositories/in-memory-artists.repository'
+import { InMemoryGenresRepository } from '@/domain/genres/repositories/in-memory-genres.repository'
+import { Artist } from '@/domain/artists/entities/artist'
+import { Genre } from '@/domain/genres/entities/genre'
 
 describe('CreateMusicUseCase', () => {
   it('should create a new music', async () => {
@@ -30,9 +16,21 @@ describe('CreateMusicUseCase', () => {
     const genreId = randomUUID()
 
     const musicRepo = new InMemoryMusicRepository()
-    const artistRepo = new InMemoryArtistRepository([artistId])
-    const genreRepo = new InMemoryGenreRepository([genreId])
-    const useCase = new CreateMusicUseCase(musicRepo, artistRepo, genreRepo)
+    const artistsRepo = new InMemoryArtistsRepository()
+    const genresRepo = new InMemoryGenresRepository()
+
+    await artistsRepo.create(
+      new Artist(
+        artistId,
+        'Djonga',
+        'https://cdn.sonoriza.com/artists/djonga.jpg',
+        0,
+      ),
+    )
+
+    await genresRepo.create(new Genre(genreId, 'Rap'))
+
+    const useCase = new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo)
 
     const result = await useCase.execute({
       title: 'Masada',
@@ -66,9 +64,21 @@ describe('CreateMusicUseCase', () => {
     const genreId = randomUUID()
 
     const musicRepo = new InMemoryMusicRepository()
-    const artistRepo = new InMemoryArtistRepository([artistId])
-    const genreRepo = new InMemoryGenreRepository([genreId])
-    const useCase = new CreateMusicUseCase(musicRepo, artistRepo, genreRepo)
+    const artistsRepo = new InMemoryArtistsRepository()
+    const genresRepo = new InMemoryGenresRepository()
+
+    await artistsRepo.create(
+      new Artist(
+        artistId,
+        'Djonga',
+        'https://cdn.sonoriza.com/artists/djonga.jpg',
+        0,
+      ),
+    )
+
+    await genresRepo.create(new Genre(genreId, 'Rap'))
+
+    const useCase = new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo)
 
     await useCase.execute({
       title: 'Masada',
@@ -107,9 +117,19 @@ describe('CreateMusicUseCase', () => {
     const artistId = randomUUID()
 
     const musicRepo = new InMemoryMusicRepository()
-    const artistRepo = new InMemoryArtistRepository([artistId])
-    const genreRepo = new InMemoryGenreRepository([])
-    const useCase = new CreateMusicUseCase(musicRepo, artistRepo, genreRepo)
+    const artistsRepo = new InMemoryArtistsRepository()
+    const genresRepo = new InMemoryGenresRepository()
+
+    await artistsRepo.create(
+      new Artist(
+        artistId,
+        'Djonga',
+        'https://cdn.sonoriza.com/artists/djonga.jpg',
+        0,
+      ),
+    )
+
+    const useCase = new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo)
 
     await expect(
       useCase.execute({
@@ -133,9 +153,12 @@ describe('CreateMusicUseCase', () => {
     const genreId = randomUUID()
 
     const musicRepo = new InMemoryMusicRepository()
-    const artistRepo = new InMemoryArtistRepository([])
-    const genreRepo = new InMemoryGenreRepository([genreId])
-    const useCase = new CreateMusicUseCase(musicRepo, artistRepo, genreRepo)
+    const artistsRepo = new InMemoryArtistsRepository()
+    const genresRepo = new InMemoryGenresRepository()
+
+    await genresRepo.create(new Genre(genreId, 'Rap'))
+
+    const useCase = new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo)
 
     await expect(
       useCase.execute({
