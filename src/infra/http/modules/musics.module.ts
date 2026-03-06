@@ -17,13 +17,13 @@ import { FetchMusicsController } from '../controllers/musics/fetch-musics.contro
 import { UpdateMusicController } from '../controllers/musics/update-music.controller'
 import { DeleteMusicController } from '../controllers/musics/delete-music.controller'
 import {
-  ArtistRepository,
-  ArtistRepositoryToken,
-} from '@/domain/musics/repositories/artist-repository'
+  ArtistsRepository,
+  ArtistsRepositoryToken,
+} from '@/domain/artists/repositories/artists-repository'
 import {
-  GenreRepository,
-  GenreRepositoryToken,
-} from '@/domain/musics/repositories/genre-repository'
+  GenresRepository,
+  GenresRepositoryToken,
+} from '@/domain/genres/repositories/genres-repository'
 import { PrismaArtistRepository } from '@/infra/database/prisma/prisma-artist.repository.service'
 import { PrismaGenreRepository } from '@/infra/database/prisma/prisma-genre.repository.service'
 import { RolesGuard } from '@/infra/auth/roles.guard'
@@ -43,21 +43,21 @@ import { RolesGuard } from '@/infra/auth/roles.guard'
       useClass: PrismaMusicRepository,
     },
     {
-      provide: ArtistRepositoryToken,
+      provide: ArtistsRepositoryToken,
       useClass: PrismaArtistRepository,
     },
     {
-      provide: GenreRepositoryToken,
+      provide: GenresRepositoryToken,
       useClass: PrismaGenreRepository,
     },
     {
       provide: CreateMusicUseCase,
       useFactory: (
         musicRepo: MusicRepository,
-        artistRepo: ArtistRepository,
-        genreRepo: GenreRepository,
-      ) => new CreateMusicUseCase(musicRepo, artistRepo, genreRepo),
-      inject: [MusicRepositoryToken, ArtistRepositoryToken, GenreRepositoryToken],
+        artistsRepo: ArtistsRepository,
+        genresRepo: GenresRepository,
+      ) => new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo),
+      inject: [MusicRepositoryToken, ArtistsRepositoryToken, GenresRepositoryToken],
     },
     {
       provide: FetchMusicsUseCase,

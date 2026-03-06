@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { GenreRepository as MusicGenreRepository } from '@/domain/musics/repositories/genre-repository'
 import { GenresRepository } from '@/domain/genres/repositories/genres-repository'
 import { Genre } from '@/domain/genres/entities/genre'
 import { PrismaService } from './prisma.service'
 import { PrismaGenreMapper } from './mappers/prisma-genre.mapper'
 
 @Injectable()
-export class PrismaGenreRepository
-  implements MusicGenreRepository, GenresRepository
-{
+export class PrismaGenreRepository implements GenresRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(genre: Genre): Promise<void> {

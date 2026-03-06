@@ -2,19 +2,18 @@
 
 ![Sonoriza Logo](https://i.ibb.co/hZ7QNB3/sonoriza.png)
 
-<!-- Project developed by [Joseilton Junior](https://github.com/joseiltonjunior) -->
-
 Sonoriza backend API built with NestJS + Prisma + PostgreSQL.
 
 ## Overview
 
 This project exposes endpoints for:
-- user authentication with JWT (RS256)
-- user management (account, session, profile)
-- music CRUD (with soft delete)
-- music genre CRUD (with soft delete)
+- JWT authentication with RS256
+- profile lifecycle for users (`/me`: get, update, soft delete)
+- CRUD for musics, genres and artists
+- role-based access control for protected writes
 - Swagger documentation
 - payload validation with Zod
+- unit and e2e tests with Vitest
 
 ## Stack
 
@@ -29,7 +28,7 @@ This project exposes endpoints for:
 
 - Node.js 20+
 - pnpm
-- Docker (optional, to run a local database)
+- Docker (optional, for local PostgreSQL)
 
 ## Quick setup
 
@@ -54,7 +53,7 @@ The `docker-compose.yml` starts a database with:
 
 ### 3) Configure environment
 
-Create/update the `.env` file:
+Create/update `.env`:
 
 ```env
 DATABASE_URL="postgresql://sonoriza:sonoriza@localhost:5432/sonoriza?schema=public"
@@ -63,34 +62,34 @@ JWT_PRIVATE_KEY="<BASE64_PRIVATE_KEY_PEM>"
 JWT_PUBLIC_KEY="<BASE64_PUBLIC_KEY_PEM>"
 ```
 
-### 4) Generate Prisma Client and apply migrations
+### 4) Generate Prisma client and apply migrations
 
 ```bash
 pnpm prisma generate
 pnpm prisma migrate deploy
 ```
 
-For development:
+For local development:
 
 ```bash
 pnpm prisma migrate dev
 ```
 
-### 5) Start the API
+### 5) Start API
 
 ```bash
 pnpm start:dev
 ```
 
-API: `http://localhost:3333`
+API: `http://localhost:3333`  
 Swagger: `http://localhost:3333/api`
 
 ## Scripts
 
 - `pnpm build` - production build
 - `pnpm start` - default start
-- `pnpm start:dev` - start with watch
-- `pnpm start:prod` - run `dist`
+- `pnpm start:dev` - watch mode
+- `pnpm start:prod` - run from `dist`
 - `pnpm lint` - lint
 - `pnpm format` - format
 - `pnpm test` - unit tests
@@ -100,10 +99,11 @@ Swagger: `http://localhost:3333/api`
 
 ## Authentication and authorization
 
-- JWT signed with `RS256`.
-- Current payload: `sub` (user id) and `role` (`USER` | `ADMIN`).
-- Write routes for `musics` and `genres` are protected by JWT and `ADMIN` role.
-- Profile routes (`/me`) require an authenticated user.
+- JWT signed with `RS256`
+- token payload includes `sub` and `role` (`USER` | `ADMIN`)
+- protected write routes require authenticated user
+- admin-only write routes require `role = ADMIN`
+- access also requires `isActive = true` and `deletedAt = null`
 
 ## Endpoints
 
@@ -116,8 +116,8 @@ Base paths:
 
 - `POST /accounts` - create account
 - `POST /sessions` - authenticate and return `access_token`
-- `GET /me` - return authenticated user profile
-- `PATCH /me` - update authenticated user name/email/photoUrl
+- `GET /me` - get authenticated profile
+- `PATCH /me` - update own profile (`name`, `email`, `photoUrl`)
 - `DELETE /me` - soft delete own account
 
 ### Musics
@@ -138,7 +138,16 @@ Base path: `/genres`
 - `PATCH /genres/:id` - update genre (ADMIN)
 - `DELETE /genres/:id` - soft delete genre (ADMIN)
 
-## Structure (summary)
+### Artists
+
+Base path: `/artists`
+
+- `POST /artists` - create artist (ADMIN)
+- `GET /artists?page=1` - paginated list (public)
+- `PATCH /artists/:id` - update artist (ADMIN)
+- `DELETE /artists/:id` - soft delete artist (ADMIN)
+
+## Architecture summary
 
 ```text
 src/
@@ -146,6 +155,7 @@ src/
     users/
     musics/
     genres/
+    artists/
   infra/
     auth/
     database/prisma/
@@ -163,12 +173,12 @@ test/
 
 ## Notes
 
-- The project uses soft delete for `users`, `musics`, `genres`, and `artists`.
-- Request validation is done with Zod in controllers.
-- Swagger is served at `/api`.
-- On Windows, if `pnpm prisma generate` fails with a lock on `query_engine-windows.dll.node`, stop running Node processes (`nest`, `vitest --watch`) and run it again.
+- Soft delete is applied to `users`, `musics`, `genres`, and `artists`.
+- Controllers validate requests using Zod.
+- Swagger is available at `/api`.
+- On Windows, if `pnpm prisma generate` fails with `query_engine-windows.dll.node` lock, stop running Node processes (`nest`, `vitest --watch`) and retry.
 
 ## Credits
 
 - Developed by [Joseilton Junior](https://github.com/joseiltonjunior)
-- Technical founder and full stack engineer with systemic product vision and pragmatic architecture mindset.
+- Technical founder profile: a product-oriented full stack engineer with pragmatic software architecture and systemic platform vision.
