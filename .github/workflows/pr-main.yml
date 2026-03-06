@@ -1,0 +1,72 @@
+name: PR → Main | Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: zenter_test
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/zenter_test
+      JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+      JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}      
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1️⃣ Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 2️⃣ Install pnpm AND add to PATH
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # 3️⃣ Verify pnpm exists (this prevents silent failures)
+      - name: Verify pnpm
+        run: pnpm --version
+
+      # 4️⃣ Enable pnpm cache (AFTER pnpm exists)
+      - name: Enable pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+
+      # 5️⃣ Install deps
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+
+      - name: Run Prisma migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Run Unit Tests
+        run: pnpm test
+
+      - name: Run E2E Tests
+        run: pnpm test:e2e

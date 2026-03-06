@@ -1,4 +1,4 @@
-import { DomainError } from '../../../shared/erros/domain-error'
+import { DomainError } from '../../../shared/errors/domain-error'
 import { HttpStatus } from '@nestjs/common'
 
 export class GenreNotFoundError extends DomainError {
