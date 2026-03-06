@@ -4,9 +4,11 @@ import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { Env } from '@/infra/env'
 import { JwtStrategy } from './jwt.strategy'
+import { DatabaseModule } from '../database/database.module'
 
 @Module({
   imports: [
+    DatabaseModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -16,7 +18,7 @@ import { JwtStrategy } from './jwt.strategy'
         const publicKey = config.get('JWT_PUBLIC_KEY', { infer: true })
 
         return {
-          signOptions: { algorithm: 'RS256' },
+          signOptions: { algorithm: 'RS256', expiresIn: '3h' },
           privateKey: Buffer.from(privateKey, 'base64'),
           publicKey: Buffer.from(publicKey, 'base64'),
         }

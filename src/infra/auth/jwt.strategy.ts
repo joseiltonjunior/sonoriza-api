@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
+import { Env } from '@/infra/env'
+import { UnauthorizedException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { Env } from '@/infra/env'
 import z from 'zod'
 
 const tokenPayloadSchema = z.object({
   sub: z.uuid(),
-  role: z.string(),
+  role: z.enum(['USER', 'ADMIN']),
 })
 
 export type UserPayload = z.infer<typeof tokenPayloadSchema>
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(config: ConfigService<Env, true>) {
+  constructor(
+    config: ConfigService<Env, true>,
+    private prisma: PrismaService,
+  ) {
     const publicKey = config.get('JWT_PUBLIC_KEY', { infer: true })
 
     super({
@@ -25,6 +29,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: UserPayload) {
-    return tokenPayloadSchema.parse(payload)
+    const parsed = tokenPayloadSchema.parse(payload)
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: parsed.sub },
+      select: { id: true, role: true, isActive: true },
+    })
+
+    if (!user || !user.isActive || user.role !== parsed.role) {
+      throw new UnauthorizedException('Invalid token user')
+    }
+
+    return { sub: user.id, role: user.role }
   }
 }

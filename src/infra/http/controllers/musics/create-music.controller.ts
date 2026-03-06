@@ -13,11 +13,16 @@ import {
   ApiBody,
   ApiNotFoundResponse,
   ApiConflictResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
 import { CreateMusicRequestSwaggerDTO } from '../../swagger/musics/create-music-request.swagger.dto'
 import { MusicResponseSwaggerDTO } from '../../swagger/musics/music-response.swagger.dto'
 import { MusicPresenter } from '../../presenters/music.presenter'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
+import { Roles } from '@/infra/auth/roles.decorator'
+import { RolesGuard } from '@/infra/auth/roles.guard'
 
 const createMusicSchema = z
   .object({
@@ -47,17 +52,21 @@ const bodyValidationPipe = new ZodValidationPipe(createMusicSchema)
 
 @ApiTags('Musics')
 @Controller('/musics')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 export class CreateMusicController {
   constructor(private createMusicUseCase: CreateMusicUseCase) {}
 
   @Post()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new music' })
   @ApiBody({ type: CreateMusicRequestSwaggerDTO })
   @ApiCreatedResponse({
     description: 'Music created successfully',
     type: MusicResponseSwaggerDTO,
   })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
   @ApiBadRequestResponse({ description: 'Invalid request payload' })
   @ApiNotFoundResponse({ description: 'Artist or genre not found' })
   @ApiConflictResponse({ description: 'Slug already exists' })

@@ -15,6 +15,15 @@ async function bootstrap() {
     .setTitle('Sonoriza API')
     .setDescription('API documentation for Sonoriza')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Paste JWT access token',
+      },
+      'bearer',
+    )
     .build()
   const document = SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('api', app, document)
