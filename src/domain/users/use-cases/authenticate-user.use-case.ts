@@ -12,7 +12,7 @@ export class AuthenticateUserUseCase {
     const { email, password } = input
 
     const user = await this.userRepo.findByEmail(email)
-    if (!user) throw new InvalidCredentialsError()
+    if (!user || !user.isActive || user.deletedAt) throw new InvalidCredentialsError()
 
     const isValid = await compare(password, user.password)
     if (!isValid) throw new InvalidCredentialsError()

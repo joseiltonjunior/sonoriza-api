@@ -19,21 +19,24 @@ enum Role {
 }
 
 model User {
-  id       String  @id @default(uuid())
+  id       String   @id @default(uuid())
   name     String
-  email    String  @unique
+  email    String   @unique
   password String
-  role     Role    @default(USER)
-  isActive Boolean @default(true) @map("is_active")
+  role     Role     @default(USER)
+  isActive Boolean  @default(true) @map("is_active")
+  photoUrl String?  @map("photo_url")
 
   musicLikes  MusicLike[]
   artistLikes ArtistLike[]
   musicViews  MusicView[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@index([role])
+  @@index([deletedAt])
   @@map("users")
 }
 
@@ -176,3 +179,4 @@ model MusicView {
   @@index([musicId, createdAt])
   @@map("music_views")
 }
+

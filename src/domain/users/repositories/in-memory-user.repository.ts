@@ -23,11 +23,23 @@ export class InMemoryUserRepository implements UserRepository {
       data.email,
       data.password,
       data.role ?? 'USER',
+      true,
+      null,
       new Date(),
+      new Date(),
+      null,
     )
 
     this.items.push(user)
 
     return user
+  }
+
+  async update(user: User): Promise<void> {
+    const index = this.items.findIndex((item) => item.id === user.id)
+
+    if (index >= 0) {
+      this.items[index] = user
+    }
   }
 }

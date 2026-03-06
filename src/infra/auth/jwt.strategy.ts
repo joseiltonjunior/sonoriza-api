@@ -33,10 +33,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const user = await this.prisma.user.findUnique({
       where: { id: parsed.sub },
-      select: { id: true, role: true, isActive: true },
+      select: { id: true, role: true, isActive: true, deletedAt: true },
     })
 
-    if (!user || !user.isActive || user.role !== parsed.role) {
+    if (!user || !user.isActive || !!user.deletedAt || user.role !== parsed.role) {
       throw new UnauthorizedException('Invalid token user')
     }
 
