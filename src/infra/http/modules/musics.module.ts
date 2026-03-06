@@ -26,6 +26,7 @@ import {
 } from '@/domain/musics/repositories/genre-repository'
 import { PrismaArtistRepository } from '@/infra/database/prisma/prisma-artist.repository.service'
 import { PrismaGenreRepository } from '@/infra/database/prisma/prisma-genre.repository.service'
+import { RolesGuard } from '@/infra/auth/roles.guard'
 
 @Module({
   controllers: [
@@ -36,6 +37,7 @@ import { PrismaGenreRepository } from '@/infra/database/prisma/prisma-genre.repo
   ],
   providers: [
     PrismaService,
+    RolesGuard,
     {
       provide: MusicRepositoryToken,
       useClass: PrismaMusicRepository,

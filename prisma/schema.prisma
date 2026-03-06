@@ -13,6 +13,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  role     Role     @default(USER)
+  isActive Boolean  @default(true) @map("is_active")
+  photoUrl String?  @map("photo_url")
+
+  musicLikes  MusicLike[]
+  artistLikes ArtistLike[]
+  musicViews  MusicView[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
 model Music {
   id          String    @id @default(uuid())
   title       String
@@ -21,8 +48,8 @@ model Music {
   coverPath   String?   @map("cover_path")
   audioPath   String    @map("audio_path")
   color       String?
-  like        Int       @default(0)
-  view        Int       @default(0)
+  likesCount  Int       @default(0) @map("like_count")
+  viewsCount  Int       @default(0) @map("view_count")
   durationSec Int?      @map("duration_seconds")
   releaseDate DateTime? @map("release_date")
 
@@ -30,28 +57,35 @@ model Music {
   genre   Genre?  @relation(fields: [genreId], references: [id])
 
   artists MusicArtist[]
+  likes   MusicLike[]
+  views   MusicView[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@index([genreId])
+  @@index([createdAt])
+  @@index([releaseDate])
+  @@index([deletedAt])
   @@map("musics")
 }
 
 model Artist {
-  id       String @id @default(uuid())
-  name     String
-  photoURL String @map("photo_url")
-  like     Int    @default(0)
+  id         String @id @default(uuid())
+  name       String
+  photoURL   String @map("photo_url")
+  likesCount Int    @default(0) @map("like_count")
 
   musics        MusicArtist[]
   musicalGenres ArtistGenre[]
+  likes         ArtistLike[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
+  @@index([deletedAt])
   @@map("artists")
 }
 
@@ -96,3 +130,53 @@ model ArtistGenre {
   @@index([genreId])
   @@map("artist_genres")
 }
+
+model MusicLike {
+  userId  String @map("user_id")
+  musicId String @map("music_id")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  music Music @relation(fields: [musicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, musicId])
+  @@index([musicId])
+  @@index([createdAt])
+  @@map("music_likes")
+}
+
+model ArtistLike {
+  userId   String @map("user_id")
+  artistId String @map("artist_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, artistId])
+  @@index([artistId])
+  @@index([createdAt])
+  @@map("artist_likes")
+}
+
+model MusicView {
+  id            String  @id @default(uuid())
+  musicId       String  @map("music_id")
+  userId        String? @map("user_id")
+  ipHash        String? @map("ip_hash")
+  userAgentHash String? @map("user_agent_hash")
+
+  music Music @relation(fields: [musicId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([musicId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([musicId, createdAt])
+  @@map("music_views")
+}
+

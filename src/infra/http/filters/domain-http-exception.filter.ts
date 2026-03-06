@@ -1,4 +1,4 @@
-import { DomainError } from '@/shared/erros/domain-error'
+import { DomainError } from '@/shared/errors/domain-error'
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common'
 
 @Catch(DomainError)

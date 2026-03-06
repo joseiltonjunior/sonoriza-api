@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch } from '@nestjs/common'
+import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { UpdateMusicUseCase } from '@/domain/musics/use-cases/update-music.use-case'
@@ -12,10 +12,16 @@ import {
   ApiBody,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
 import { UpdateMusicRequestSwaggerDTO } from '../../swagger/musics/update-music-request.swagger.dto'
 import { UpdateMusicResponseSwaggerDTO } from '../../swagger/musics/update-music-response.swagger.dto'
 import { MusicPresenter } from '../../presenters/music.presenter'
+import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
+import { Roles } from '@/infra/auth/roles.decorator'
+import { RolesGuard } from '@/infra/auth/roles.guard'
 
 const bodySchema = z.object({
   title: z.string().optional(),
@@ -40,10 +46,13 @@ const bodyValidationPipe = new ZodValidationPipe(bodySchema)
 
 @ApiTags('Musics')
 @Controller('/musics')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 export class UpdateMusicController {
   constructor(private updateMusicUseCase: UpdateMusicUseCase) {}
 
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a music' })
   @ApiParam({
     name: 'id',
@@ -56,6 +65,8 @@ export class UpdateMusicController {
     description: 'Music updated successfully',
     type: UpdateMusicResponseSwaggerDTO,
   })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role permissions' })
   @ApiNotFoundResponse({
     description: 'Music not found',
   })

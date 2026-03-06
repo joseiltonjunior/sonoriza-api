@@ -17,7 +17,7 @@ interface PrismaArtistWithRelations {
   id: string
   name: string
   photoURL: string
-  like: number
+  likesCount: number
   musics: PrismaMusicArtistLink[]
   musicalGenres: PrismaMusicArtistGenre[]
 }
@@ -34,8 +34,8 @@ export interface PrismaMusicWithRelations {
   album: string | null
   coverPath: string | null
   color: string | null
-  like: number
-  view: number
+  likesCount: number
+  viewsCount: number
   durationSec: number | null
   releaseDate: Date | null
   genreId: string | null
@@ -54,7 +54,7 @@ export class PrismaMusicMapper {
         id: entry.artist.id,
         name: entry.artist.name,
         photoURL: entry.artist.photoURL,
-        like: entry.artist.like,
+        like: entry.artist.likesCount,
         musics: (entry.artist.musics ?? []).map((music) => music.musicId),
         musicalGenres: (entry.artist.musicalGenres ?? []).map((item) => ({
           id: item.genre.id,
@@ -70,8 +70,8 @@ export class PrismaMusicMapper {
       raw.album,
       raw.coverPath,
       raw.color,
-      raw.like,
-      raw.view,
+      raw.likesCount,
+      raw.viewsCount,
       raw.durationSec,
       raw.releaseDate,
       raw.genreId,
@@ -93,8 +93,8 @@ export class PrismaMusicMapper {
       coverPath: music.coverPath,
       audioPath: music.audioPath,
       color: music.color,
-      like: music.like,
-      view: music.view,
+      likesCount: music.like,
+      viewsCount: music.view,
       durationSec: music.durationSec,
       releaseDate: music.releaseDate,
       genreId: music.genreId,
