@@ -5,8 +5,6 @@ export interface CreateMusicDTO {
   album: string | null
   coverPath: string | null
   color: string | null
-  like: number | null
-  view: number | null
   durationSec: number | null
   releaseDate: Date | null
   genreId: string | null

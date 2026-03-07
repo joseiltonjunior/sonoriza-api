@@ -5,8 +5,6 @@ export interface UpdateMusicDTO {
   album?: string | null
   coverPath?: string | null
   color?: string | null
-  like?: number
-  view?: number
   durationSec?: number | null
   releaseDate?: Date | null
   genreId?: string | null

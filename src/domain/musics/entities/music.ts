@@ -43,8 +43,6 @@ export class Music {
     if (data.album !== undefined) this.album = data.album
     if (data.coverPath !== undefined) this.coverPath = data.coverPath
     if (data.color !== undefined) this.color = data.color
-    if (data.like !== undefined) this.like = data.like
-    if (data.view !== undefined) this.view = data.view
     if (data.durationSec !== undefined) this.durationSec = data.durationSec
     if (data.releaseDate !== undefined) this.releaseDate = data.releaseDate
     if (data.genreId !== undefined) this.genreId = data.genreId

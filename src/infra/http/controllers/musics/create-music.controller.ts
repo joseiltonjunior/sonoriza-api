@@ -34,8 +34,6 @@ const createMusicSchema = z
     coverPath: z.string().nullable().optional(),
     artwork: z.string().nullable().optional(),
     color: z.string().nullable().optional(),
-    like: z.number().int().min(0).nullable().optional(),
-    view: z.number().int().min(0).nullable().optional(),
     durationSec: z.number().nullable().optional(),
     releaseDate: z.coerce.date().nullable().optional(),
     genreId: z.string().nullable().optional(),
@@ -45,6 +43,7 @@ const createMusicSchema = z
     message: 'audioPath or url is required',
     path: ['audioPath'],
   })
+  .strict()
 
 type CreateMusicBody = z.infer<typeof createMusicSchema>
 
@@ -79,8 +78,6 @@ export class CreateMusicController {
       album: body.album ?? null,
       coverPath: body.coverPath ?? body.artwork ?? null,
       color: body.color ?? null,
-      like: body.like ?? null,
-      view: body.view ?? null,
       durationSec: body.durationSec ?? null,
       releaseDate: body.releaseDate ?? null,
       genreId: body.genreId ?? null,

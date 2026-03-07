@@ -51,12 +51,6 @@ export class UpdateMusicRequestSwaggerDTO {
   })
   color?: string | null
 
-  @ApiProperty({ example: 150, required: false })
-  like?: number
-
-  @ApiProperty({ example: 1000, required: false })
-  view?: number
-
   @ApiProperty({
     example: 300,
     required: false,

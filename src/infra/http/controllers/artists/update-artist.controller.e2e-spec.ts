@@ -38,7 +38,25 @@ describe('Update artist (E2E)', () => {
     expect(response.statusCode).toBe(403)
   })
 
-  test('[PATCH]/artists/:id should update artist for ADMIN role', async () => {
+  test('[PATCH]/artists/:id should reject manual like field', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
+
+    const artist = await prisma.artist.create({
+      data: {
+        name: `Reject artist like ${Date.now()} ${Math.random()}`,
+        photoURL: 'https://cdn.sonoriza.com/artists/reject-like.jpg',
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .patch(`/artists/${artist.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ like: 999 })
+
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('[PATCH]/artists/:id should update artist for ADMIN role and sync artist genres', async () => {
     const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
 
     const artist = await prisma.artist.create({
@@ -48,17 +66,26 @@ describe('Update artist (E2E)', () => {
       },
     })
 
+    const genre = await prisma.genre.create({
+      data: {
+        name: `Updated artist genre ${Date.now()} ${Math.random()}`,
+      },
+    })
+
     const response = await request(app.getHttpServer())
       .patch(`/artists/${artist.id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Updated Artist', like: 20 })
+      .send({ name: 'Updated Artist', genreIds: [genre.id] })
 
     const updatedOnDatabase = await prisma.artist.findUnique({
       where: { id: artist.id },
+      include: {
+        musicalGenres: true,
+      },
     })
 
     expect(response.statusCode).toBe(200)
     expect(updatedOnDatabase?.name).toBe('Updated Artist')
-    expect(updatedOnDatabase?.likesCount).toBe(20)
+    expect(updatedOnDatabase?.musicalGenres.some((item) => item.genreId === genre.id)).toBe(true)
   })
 })
