@@ -2,6 +2,7 @@ import { AuthenticateUserUseCase } from './authenticate-user.use-case'
 import { CreateUserUseCase } from './create-user.use-case'
 import { InvalidCredentialsError } from '../errors/invalid-credentials.error'
 import { InMemoryUserRepository } from '../repositories/in-memory-user.repository'
+import { UnauthorizedError } from '../errors/unauthorized.error'
 
 describe('AuthenticateUserUseCase', () => {
   it('should authenticate a valid user', async () => {
@@ -40,7 +41,7 @@ describe('AuthenticateUserUseCase', () => {
     ).rejects.toBeInstanceOf(InvalidCredentialsError)
   })
 
-  it('should throw when user is inactive', async () => {
+  it('should throw unauthorized when user is inactive', async () => {
     const repo = new InMemoryUserRepository()
     const createUser = new CreateUserUseCase(repo)
     const authUseCase = new AuthenticateUserUseCase(repo)
@@ -62,6 +63,6 @@ describe('AuthenticateUserUseCase', () => {
         email: 'john@example.com',
         password: '123456',
       }),
-    ).rejects.toBeInstanceOf(InvalidCredentialsError)
+    ).rejects.toBeInstanceOf(UnauthorizedError)
   })
 })
