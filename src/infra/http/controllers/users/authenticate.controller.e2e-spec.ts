@@ -40,4 +40,28 @@ describe('Authenticate account (E2E)', () => {
       access_token: expect.any(String),
     })
   })
+
+  test('[POST]/sessions should return unauthorized for inactive user', async () => {
+    const email = `inactive-${Date.now()}-${Math.random()}@example.com`
+
+    await prisma.user.create({
+      data: {
+        name: 'Inactive User',
+        email,
+        password: await hash('123456', 8),
+        isActive: false,
+      },
+    })
+
+    const response = await request(app.getHttpServer()).post('/sessions').send({
+      email,
+      password: '123456',
+    })
+
+    expect(response.statusCode).toBe(401)
+    expect(response.body).toEqual({
+      message: 'Unauthorized',
+      code: 'UNAUTHORIZED',
+    })
+  })
 })
