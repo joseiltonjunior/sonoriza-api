@@ -14,3 +14,8 @@ command = "pnpm start:dev"
 name = "test:unit"
 icon = "tool"
 command = "pnpm test"
+
+[[actions]]
+name = "test e2e"
+icon = "tool"
+command = "pnpm test:e2e"

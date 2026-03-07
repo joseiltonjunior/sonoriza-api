@@ -3,6 +3,8 @@ import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import request from 'supertest'
+import { authenticateTestUser } from '@/utils/authenticate'
+import { Role } from '@prisma/client'
 
 describe('Fetch genres (E2E)', () => {
   let app: INestApplication
@@ -18,7 +20,14 @@ describe('Fetch genres (E2E)', () => {
     await app.init()
   })
 
-  test('[GET]/genres should fetch paginated genres', async () => {
+  test('[GET]/genres should require auth token', async () => {
+    const response = await request(app.getHttpServer()).get('/genres?page=1')
+
+    expect(response.statusCode).toBe(401)
+  })
+
+  test('[GET]/genres should fetch paginated genres for authenticated USER/ADMIN', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.USER)
     const prefix = `fetch-${Date.now()}-${Math.random()}`
 
     for (let i = 1; i <= 25; i++) {
@@ -41,7 +50,9 @@ describe('Fetch genres (E2E)', () => {
       })
     }
 
-    const response = await request(app.getHttpServer()).get('/genres?page=1')
+    const response = await request(app.getHttpServer())
+      .get('/genres?page=1')
+      .set('Authorization', `Bearer ${token}`)
 
     expect(response.statusCode).toBe(200)
     expect(response.body.data.length).toBeLessThanOrEqual(20)

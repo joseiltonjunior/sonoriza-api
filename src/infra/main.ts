@@ -25,8 +25,14 @@ async function bootstrap() {
       'bearer',
     )
     .build()
+
   const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, document)
+
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  })
 
   app.use(bodyParser.json())
 

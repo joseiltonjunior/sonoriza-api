@@ -1,13 +1,21 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import { Controller, Get, Query, UseGuards } from '@nestjs/common'
 import { z } from 'zod'
 
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { FetchArtistsDTO } from '@/domain/artists/dtos/fetch-artists.dto'
 import { FetchArtistsUseCase } from '@/domain/artists/use-cases/fetch-artists.use-case'
 
-import { ApiTags, ApiOperation, ApiOkResponse, ApiQuery } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiQuery,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger'
 import { FetchArtistsResponseSwaggerDTO } from '../../swagger/artists/fetch-artists-response.swagger.dto'
 import { ArtistPresenter } from '../../presenters/artist.presenter'
+import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
 const fetchArtistsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
@@ -19,10 +27,12 @@ const queryValidationPipe = new ZodValidationPipe(fetchArtistsQuerySchema)
 
 @ApiTags('Artists')
 @Controller('/artists')
+@UseGuards(JwtAuthGuard)
 export class FetchArtistsController {
   constructor(private fetchArtistsUseCase: FetchArtistsUseCase) {}
 
   @Get()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Fetch paginated artists',
   })
@@ -35,6 +45,7 @@ export class FetchArtistsController {
     description: 'Paginated list of artists',
     type: FetchArtistsResponseSwaggerDTO,
   })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async handle(@Query(queryValidationPipe) query: FetchArtistsQuery) {
     const dto: FetchArtistsDTO = {
       page: query.page,
