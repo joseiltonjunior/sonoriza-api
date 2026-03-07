@@ -38,6 +38,14 @@ describe('Authenticate account (E2E)', () => {
     expect(response.statusCode).toBe(201)
     expect(response.body).toEqual({
       access_token: expect.any(String),
+      user: {
+        id: expect.any(String),
+        name: 'John Doe',
+        email,
+        role: 'USER',
+        isActive: true,
+        photoUrl: null,
+      },
     })
   })
 
