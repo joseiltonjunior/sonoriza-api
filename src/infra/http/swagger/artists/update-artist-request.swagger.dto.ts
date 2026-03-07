@@ -10,6 +10,10 @@ export class UpdateArtistRequestSwaggerDTO {
   })
   photoURL?: string
 
-  @ApiProperty({ example: 10, required: false })
-  like?: number
+  @ApiProperty({
+    example: ['genre-id-uuid'],
+    required: false,
+    type: [String],
+  })
+  genreIds?: string[]
 }

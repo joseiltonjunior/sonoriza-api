@@ -34,9 +34,30 @@ describe('Create artist (E2E)', () => {
     expect(response.statusCode).toBe(403)
   })
 
-  test('[POST]/artists should create artist for ADMIN role', async () => {
+  test('[POST]/artists should reject manual like field', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
+
+    const response = await request(app.getHttpServer())
+      .post('/artists')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Artist with forbidden like',
+        photoURL: 'https://cdn.sonoriza.com/artists/forbidden-like.jpg',
+        like: 999,
+      })
+
+    expect(response.statusCode).toBe(400)
+  })
+
+  test('[POST]/artists should create artist for ADMIN role and persist artist genres', async () => {
     const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
     const name = `Admin Artist ${Date.now()} ${Math.random()}`
+
+    const genre = await prisma.genre.create({
+      data: {
+        name: `Genre for artist ${Date.now()} ${Math.random()}`,
+      },
+    })
 
     const response = await request(app.getHttpServer())
       .post('/artists')
@@ -44,13 +65,19 @@ describe('Create artist (E2E)', () => {
       .send({
         name,
         photoURL: 'https://cdn.sonoriza.com/artists/admin.jpg',
+        genreIds: [genre.id],
       })
 
     const artistOnDatabase = await prisma.artist.findFirst({
       where: { name },
+      include: {
+        musicalGenres: true,
+      },
     })
 
     expect(response.statusCode).toBe(201)
     expect(artistOnDatabase).toBeTruthy()
+    expect(artistOnDatabase?.likesCount).toBe(0)
+    expect(artistOnDatabase?.musicalGenres.some((item) => item.genreId === genre.id)).toBe(true)
   })
 })

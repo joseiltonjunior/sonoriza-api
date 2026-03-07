@@ -23,11 +23,13 @@ import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { Roles } from '@/infra/auth/roles.decorator'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 
-const bodySchema = z.object({
-  name: z.string().optional(),
-  photoURL: z.url().optional(),
-  like: z.number().int().min(0).optional(),
-})
+const bodySchema = z
+  .object({
+    name: z.string().optional(),
+    photoURL: z.url().optional(),
+    genreIds: z.array(z.uuid()).optional(),
+  })
+  .strict()
 
 type UpdateArtistBody = z.infer<typeof bodySchema>
 
@@ -69,7 +71,7 @@ export class UpdateArtistController {
     const dto: UpdateArtistDTO = {
       name: body.name,
       photoURL: body.photoURL,
-      like: body.like,
+      genreIds: body.genreIds,
     }
 
     const updated = await this.updateArtistUseCase.execute(id, dto)

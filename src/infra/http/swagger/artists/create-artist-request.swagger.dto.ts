@@ -7,6 +7,10 @@ export class CreateArtistRequestSwaggerDTO {
   @ApiProperty({ example: 'https://cdn.sonoriza.com/artists/djonga.jpg' })
   photoURL!: string
 
-  @ApiProperty({ example: 0, required: false, nullable: true })
-  like?: number | null
+  @ApiProperty({
+    example: ['genre-id-uuid'],
+    required: false,
+    type: [String],
+  })
+  genreIds?: string[]
 }

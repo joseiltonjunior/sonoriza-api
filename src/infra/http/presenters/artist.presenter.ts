@@ -7,6 +7,8 @@ export class ArtistPresenter {
       name: artist.name,
       photoURL: artist.photoURL,
       like: artist.like,
+      genreIds: artist.genreIds,
+      musicalGenres: artist.musicalGenres,
     }
   }
 }

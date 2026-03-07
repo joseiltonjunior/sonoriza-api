@@ -36,6 +36,24 @@ describe('Create music (E2E)', () => {
     expect(response.statusCode).toBe(403)
   })
 
+  test('[POST]/musics should reject manual like/view fields', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
+    const slug = `reject-manual-counters-${Date.now()}-${Math.random()}`
+
+    const response = await request(app.getHttpServer())
+      .post('/musics')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Music with forbidden counters',
+        slug,
+        url: 'https://cdn.example.com/admin-audio.mp3',
+        like: 123,
+        view: 456,
+      })
+
+    expect(response.statusCode).toBe(400)
+  })
+
   test('[POST]/musics should create music for ADMIN role', async () => {
     const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
     const slug = `admin-create-${Date.now()}-${Math.random()}`
@@ -55,5 +73,7 @@ describe('Create music (E2E)', () => {
 
     expect(response.statusCode).toBe(201)
     expect(musicOnDatabase).toBeTruthy()
+    expect(musicOnDatabase?.likesCount).toBe(0)
+    expect(musicOnDatabase?.viewsCount).toBe(0)
   })
 })

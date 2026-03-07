@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { PrismaArtistRepository } from '@/infra/database/prisma/prisma-artist.repository.service'
+import { PrismaGenreRepository } from '@/infra/database/prisma/prisma-genre.repository.service'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 
 import {
@@ -12,6 +13,10 @@ import { CreateArtistUseCase } from '@/domain/artists/use-cases/create-artist.us
 import { FetchArtistsUseCase } from '@/domain/artists/use-cases/fetch-artists.use-case'
 import { UpdateArtistUseCase } from '@/domain/artists/use-cases/update-artist.use-case'
 import { DeleteArtistUseCase } from '@/domain/artists/use-cases/delete-artist.use-case'
+import {
+  GenresRepository,
+  GenresRepositoryToken,
+} from '@/domain/genres/repositories/genres-repository'
 
 import { CreateArtistController } from '../controllers/artists/create-artist.controller'
 import { FetchArtistsController } from '../controllers/artists/fetch-artists.controller'
@@ -33,9 +38,16 @@ import { DeleteArtistController } from '../controllers/artists/delete-artist.con
       useClass: PrismaArtistRepository,
     },
     {
+      provide: GenresRepositoryToken,
+      useClass: PrismaGenreRepository,
+    },
+    {
       provide: CreateArtistUseCase,
-      useFactory: (repo: ArtistsRepository) => new CreateArtistUseCase(repo),
-      inject: [ArtistsRepositoryToken],
+      useFactory: (
+        artistsRepo: ArtistsRepository,
+        genresRepo: GenresRepository,
+      ) => new CreateArtistUseCase(artistsRepo, genresRepo),
+      inject: [ArtistsRepositoryToken, GenresRepositoryToken],
     },
     {
       provide: FetchArtistsUseCase,
@@ -44,8 +56,11 @@ import { DeleteArtistController } from '../controllers/artists/delete-artist.con
     },
     {
       provide: UpdateArtistUseCase,
-      useFactory: (repo: ArtistsRepository) => new UpdateArtistUseCase(repo),
-      inject: [ArtistsRepositoryToken],
+      useFactory: (
+        artistsRepo: ArtistsRepository,
+        genresRepo: GenresRepository,
+      ) => new UpdateArtistUseCase(artistsRepo, genresRepo),
+      inject: [ArtistsRepositoryToken, GenresRepositoryToken],
     },
     {
       provide: DeleteArtistUseCase,

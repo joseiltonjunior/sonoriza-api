@@ -36,12 +36,6 @@ export class CreateMusicRequestSwaggerDTO {
   })
   color?: string | null
 
-  @ApiProperty({ example: 10, required: false, nullable: true })
-  like?: number | null
-
-  @ApiProperty({ example: 250, required: false, nullable: true })
-  view?: number | null
-
   @ApiProperty({
     example: 245,
     required: false,

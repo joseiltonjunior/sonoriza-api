@@ -39,8 +39,6 @@ describe('UpdateMusicUseCase', () => {
     const updated = await useCase.execute(music.id, {
       title: 'Masada Remastered',
       color: '#111111',
-      like: 20,
-      view: 300,
       genreId: newGenreId,
       artistIds: [newArtistId],
     })
@@ -50,8 +48,8 @@ describe('UpdateMusicUseCase', () => {
         id: music.id,
         title: 'Masada Remastered',
         color: '#111111',
-        like: 20,
-        view: 300,
+        like: 10,
+        view: 250,
         genreId: newGenreId,
         artistIds: [newArtistId],
       }),

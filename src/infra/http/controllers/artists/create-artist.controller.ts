@@ -22,11 +22,13 @@ import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { Roles } from '@/infra/auth/roles.decorator'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 
-const createArtistSchema = z.object({
-  name: z.string(),
-  photoURL: z.url(),
-  like: z.number().int().min(0).nullable().optional(),
-})
+const createArtistSchema = z
+  .object({
+    name: z.string(),
+    photoURL: z.url(),
+    genreIds: z.array(z.uuid()).optional(),
+  })
+  .strict()
 
 type CreateArtistBody = z.infer<typeof createArtistSchema>
 
@@ -55,7 +57,7 @@ export class CreateArtistController {
     const dto: CreateArtistDTO = {
       name: body.name,
       photoURL: body.photoURL,
-      like: body.like ?? null,
+      genreIds: body.genreIds,
     }
 
     const created = await this.createArtistUseCase.execute(dto)
