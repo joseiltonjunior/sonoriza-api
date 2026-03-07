@@ -7,9 +7,14 @@ import { UnauthorizedError } from '../errors/unauthorized.error'
 export class AuthenticateUserUseCase {
   constructor(private userRepo: UserRepository) {}
 
-  async execute(
-    input: AuthenticateDTO,
-  ): Promise<{ id: string; role: string; email: string }> {
+  async execute(input: AuthenticateDTO): Promise<{
+    id: string
+    role: string
+    email: string
+    name: string
+    isActive: boolean
+    photoUrl: string | null
+  }> {
     const { email, password } = input
 
     const user = await this.userRepo.findByEmail(email)
@@ -22,6 +27,13 @@ export class AuthenticateUserUseCase {
     const isValid = await compare(password, user.password)
     if (!isValid) throw new InvalidCredentialsError()
 
-    return { id: user.id, role: user.role, email: user.email }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photoUrl: user.photoUrl,
+      role: user.role,
+      isActive: user.isActive,
+    }
   }
 }
