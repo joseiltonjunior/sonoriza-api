@@ -23,22 +23,22 @@ import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { Roles } from '@/infra/auth/roles.decorator'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 
-const bodySchema = z.object({
-  title: z.string().optional(),
-  slug: z.string().optional(),
-  audioPath: z.string().optional(),
-  url: z.string().optional(),
-  album: z.string().nullable().optional(),
-  coverPath: z.string().nullable().optional(),
-  artwork: z.string().nullable().optional(),
-  color: z.string().nullable().optional(),
-  like: z.number().int().min(0).optional(),
-  view: z.number().int().min(0).optional(),
-  durationSec: z.number().nullable().optional(),
-  releaseDate: z.coerce.date().nullable().optional(),
-  genreId: z.string().nullable().optional(),
-  artistIds: z.array(z.string()).optional(),
-})
+const bodySchema = z
+  .object({
+    title: z.string().optional(),
+    slug: z.string().optional(),
+    audioPath: z.string().optional(),
+    url: z.string().optional(),
+    album: z.string().nullable().optional(),
+    coverPath: z.string().nullable().optional(),
+    artwork: z.string().nullable().optional(),
+    color: z.string().nullable().optional(),
+    durationSec: z.number().nullable().optional(),
+    releaseDate: z.coerce.date().nullable().optional(),
+    genreId: z.string().nullable().optional(),
+    artistIds: z.array(z.string()).optional(),
+  })
+  .strict()
 
 type UpdateMusicBody = z.infer<typeof bodySchema>
 
@@ -84,8 +84,6 @@ export class UpdateMusicController {
       album: body.album,
       coverPath: body.coverPath ?? body.artwork,
       color: body.color,
-      like: body.like,
-      view: body.view,
       durationSec: body.durationSec,
       releaseDate: body.releaseDate,
       genreId: body.genreId,

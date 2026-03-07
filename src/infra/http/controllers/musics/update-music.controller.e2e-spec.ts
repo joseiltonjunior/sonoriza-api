@@ -39,6 +39,25 @@ describe('Update music (E2E)', () => {
     expect(response.statusCode).toBe(403)
   })
 
+  test('[PATCH]/musics/:id should reject manual like/view fields', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
+
+    const music = await prisma.music.create({
+      data: {
+        title: 'Music to Reject Manual Counters',
+        slug: `reject-counters-${Date.now()}-${Math.random()}`,
+        audioPath: 'https://cdn.example.com/reject-counters.mp3',
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .patch(`/musics/${music.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ like: 999, view: 9999 })
+
+    expect(response.statusCode).toBe(400)
+  })
+
   test('[PATCH]/musics/:id should update music for ADMIN role', async () => {
     const { token } = await authenticateTestUser(app, prisma, Role.ADMIN)
 

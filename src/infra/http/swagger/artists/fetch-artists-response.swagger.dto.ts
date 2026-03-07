@@ -11,6 +11,14 @@ class FetchArtistsMetaSwaggerDTO {
   lastPage!: number
 }
 
+class MusicalGenreItemSwaggerDTO {
+  @ApiProperty({ example: 'genre-id-uuid' })
+  id!: string
+
+  @ApiProperty({ example: 'Forro' })
+  name!: string
+}
+
 class ArtistItemSwaggerDTO {
   @ApiProperty({ example: 'artist-id-uuid' })
   id!: string
@@ -23,6 +31,12 @@ class ArtistItemSwaggerDTO {
 
   @ApiProperty({ example: 1450 })
   like!: number
+
+  @ApiProperty({ example: ['genre-id-uuid'], type: [String] })
+  genreIds!: string[]
+
+  @ApiProperty({ type: [MusicalGenreItemSwaggerDTO] })
+  musicalGenres!: MusicalGenreItemSwaggerDTO[]
 }
 
 export class FetchArtistsResponseSwaggerDTO {

@@ -2,7 +2,18 @@ import { Injectable } from '@nestjs/common'
 import { ArtistsRepository } from '@/domain/artists/repositories/artists-repository'
 import { Artist } from '@/domain/artists/entities/artist'
 import { PrismaService } from './prisma.service'
-import { PrismaArtistMapper } from './mappers/prisma-artist.mapper'
+import {
+  PrismaArtistMapper,
+  PrismaArtistWithRelations,
+} from './mappers/prisma-artist.mapper'
+
+const artistIncludeWithGenres = {
+  musicalGenres: {
+    include: {
+      genre: true,
+    },
+  },
+}
 
 @Injectable()
 export class PrismaArtistRepository implements ArtistsRepository {
@@ -10,20 +21,29 @@ export class PrismaArtistRepository implements ArtistsRepository {
 
   async create(artist: Artist): Promise<void> {
     await this.prisma.artist.create({
-      data: PrismaArtistMapper.toPrisma(artist),
+      data: {
+        ...PrismaArtistMapper.toPrisma(artist),
+        musicalGenres:
+          artist.genreIds.length > 0
+            ? {
+                create: artist.genreIds.map((genreId) => ({ genreId })),
+              }
+            : undefined,
+      },
     })
   }
 
   async findById(id: string): Promise<Artist | null> {
     const artist = await this.prisma.artist.findUnique({
       where: { id },
+      include: artistIncludeWithGenres,
     })
 
     if (!artist || artist.deletedAt) {
       return null
     }
 
-    return PrismaArtistMapper.toDomain(artist)
+    return PrismaArtistMapper.toDomain(artist as PrismaArtistWithRelations)
   }
 
   async findMany({
@@ -41,6 +61,7 @@ export class PrismaArtistRepository implements ArtistsRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: artistIncludeWithGenres,
       }),
       this.prisma.artist.count({
         where: { deletedAt: null },
@@ -48,7 +69,9 @@ export class PrismaArtistRepository implements ArtistsRepository {
     ])
 
     return {
-      data: data.map(PrismaArtistMapper.toDomain),
+      data: (data as PrismaArtistWithRelations[]).map(
+        PrismaArtistMapper.toDomain,
+      ),
       total,
     }
   }
@@ -56,7 +79,13 @@ export class PrismaArtistRepository implements ArtistsRepository {
   async update(artist: Artist): Promise<void> {
     await this.prisma.artist.update({
       where: { id: artist.id },
-      data: PrismaArtistMapper.toPrisma(artist),
+      data: {
+        ...PrismaArtistMapper.toPrisma(artist),
+        musicalGenres: {
+          deleteMany: {},
+          create: artist.genreIds.map((genreId) => ({ genreId })),
+        },
+      },
     })
   }
 }

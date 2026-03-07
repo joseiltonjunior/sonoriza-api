@@ -11,7 +11,7 @@ import { Artist } from '@/domain/artists/entities/artist'
 import { Genre } from '@/domain/genres/entities/genre'
 
 describe('CreateMusicUseCase', () => {
-  it('should create a new music', async () => {
+  it('should create a new music with default counters', async () => {
     const artistId = randomUUID()
     const genreId = randomUUID()
 
@@ -39,8 +39,6 @@ describe('CreateMusicUseCase', () => {
       album: 'Best Of',
       coverPath: 'https://cdn.sonoriza.com/covers/masada.jpg',
       color: '#c53a27',
-      like: 10,
-      view: 250,
       durationSec: 245,
       releaseDate: new Date('2024-01-01T00:00:00.000Z'),
       genreId,
@@ -53,6 +51,8 @@ describe('CreateMusicUseCase', () => {
         title: 'Masada',
         slug: 'masada',
         genreId,
+        like: 0,
+        view: 0,
       }),
     )
 
@@ -87,8 +87,6 @@ describe('CreateMusicUseCase', () => {
       album: null,
       coverPath: null,
       color: null,
-      like: null,
-      view: null,
       durationSec: null,
       releaseDate: null,
       genreId,
@@ -103,8 +101,6 @@ describe('CreateMusicUseCase', () => {
         album: null,
         coverPath: null,
         color: null,
-        like: null,
-        view: null,
         durationSec: null,
         releaseDate: null,
         genreId,
@@ -139,8 +135,6 @@ describe('CreateMusicUseCase', () => {
         album: null,
         coverPath: null,
         color: null,
-        like: null,
-        view: null,
         durationSec: null,
         releaseDate: null,
         genreId: randomUUID(),
@@ -168,8 +162,6 @@ describe('CreateMusicUseCase', () => {
         album: null,
         coverPath: null,
         color: null,
-        like: null,
-        view: null,
         durationSec: null,
         releaseDate: null,
         genreId,
