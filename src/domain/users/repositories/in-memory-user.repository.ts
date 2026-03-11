@@ -16,6 +16,24 @@ export class InMemoryUserRepository implements UserRepository {
     return user ?? null
   }
 
+  async findMany({
+    page,
+    limit,
+  }: {
+    page: number
+    limit: number
+  }): Promise<{ data: User[]; total: number }> {
+    const activeUsers = this.items
+      .filter((user) => user.deletedAt === null)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+
+    const total = activeUsers.length
+    const skip = (page - 1) * limit
+    const data = activeUsers.slice(skip, skip + limit)
+
+    return { data, total }
+  }
+
   async create(data: CreateUserDTO): Promise<User> {
     const user = new User(
       randomUUID(),
@@ -23,7 +41,7 @@ export class InMemoryUserRepository implements UserRepository {
       data.email,
       data.password,
       data.role ?? 'USER',
-      true,
+      false,
       null,
       new Date(),
       new Date(),

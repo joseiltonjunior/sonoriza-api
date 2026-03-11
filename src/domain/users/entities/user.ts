@@ -26,6 +26,11 @@ export class User {
     this.updatedAt = new Date()
   }
 
+  setActiveStatus(isActive: boolean) {
+    this.isActive = isActive
+    this.updatedAt = new Date()
+  }
+
   softDelete() {
     this.isActive = false
     this.deletedAt = new Date()

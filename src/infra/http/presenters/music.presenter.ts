@@ -6,6 +6,7 @@ export class MusicPresenter {
       id: music.id,
       title: music.title,
       url: music.audioPath,
+      genreId: music.genreId,
       genre: music.genre,
       album: music.album,
       artwork: music.coverPath,

@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
 const fetchMusicsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
+  artistId: z.uuid().optional(),
 })
 
 type FetchMusicsQuery = z.infer<typeof fetchMusicsQuerySchema>
@@ -42,6 +43,12 @@ export class FetchMusicsController {
     required: false,
     example: 1,
   })
+  @ApiQuery({
+    name: 'artistId',
+    required: false,
+    example: '67502595-593c-4ada-8f2c-b6cd6a743f61',
+    description: 'Filter musics by artist id',
+  })
   @ApiOkResponse({
     description: 'Paginated list of musics',
     type: FetchMusicsResponseSwaggerDTO,
@@ -50,6 +57,7 @@ export class FetchMusicsController {
   async handle(@Query(queryValidationPipe) query: FetchMusicsQuery) {
     const dto: FetchMusicsDTO = {
       page: query.page,
+      artistId: query.artistId,
     }
 
     const response = await this.fetchMusicsUseCase.execute(dto)

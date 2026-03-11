@@ -22,6 +22,31 @@ export class PrismaUserRepository implements UserRepository {
     return PrismaUserMapper.toDomain(user)
   }
 
+  async findMany({
+    page,
+    limit,
+  }: {
+    page: number
+    limit: number
+  }): Promise<{ data: User[]; total: number }> {
+    const skip = (page - 1) * limit
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where: { deletedAt: null },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where: { deletedAt: null } }),
+    ])
+
+    return {
+      data: data.map(PrismaUserMapper.toDomain),
+      total,
+    }
+  }
+
   async create(data: CreateUserDTO) {
     const user = await this.prisma.user.create({
       data: {
@@ -29,6 +54,7 @@ export class PrismaUserRepository implements UserRepository {
         email: data.email,
         password: data.password,
         role: 'USER',
+        isActive: false,
       },
     })
 

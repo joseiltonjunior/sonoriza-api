@@ -9,6 +9,7 @@ export class ArtistPresenter {
       like: artist.like,
       genreIds: artist.genreIds,
       musicalGenres: artist.musicalGenres,
+      musics: artist.musics,
     }
   }
 }

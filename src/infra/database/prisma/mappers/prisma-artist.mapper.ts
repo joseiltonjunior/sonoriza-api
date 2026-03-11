@@ -1,5 +1,5 @@
 import { Artist } from '@/domain/artists/entities/artist'
-import { Artist as PrismaArtist } from '@prisma/client'
+import { Artist as PrismaArtist, Music as PrismaMusic } from '@prisma/client'
 
 interface PrismaGenreRef {
   id: string
@@ -11,8 +11,13 @@ interface PrismaArtistGenreJoin {
   genre: PrismaGenreRef
 }
 
+interface PrismaArtistMusicJoin {
+  music: PrismaMusic
+}
+
 export interface PrismaArtistWithRelations extends PrismaArtist {
   musicalGenres?: PrismaArtistGenreJoin[]
+  musics?: PrismaArtistMusicJoin[]
 }
 
 export class PrismaArtistMapper {
@@ -22,6 +27,17 @@ export class PrismaArtistMapper {
       name: item.genre.name,
     }))
 
+    const musics = (raw.musics ?? [])
+      .map((item) => item.music)
+      .filter((music) => music.deletedAt === null)
+      .map((music) => ({
+        id: music.id,
+        title: music.title,
+        slug: music.slug,
+        audioPath: music.audioPath,
+        coverPath: music.coverPath,
+      }))
+
     return new Artist(
       raw.id,
       raw.name,
@@ -29,6 +45,7 @@ export class PrismaArtistMapper {
       raw.likesCount,
       (raw.musicalGenres ?? []).map((item) => item.genreId),
       musicalGenres,
+      musics,
       raw.createdAt,
       raw.updatedAt,
       raw.deletedAt,

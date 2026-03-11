@@ -38,6 +38,9 @@ export class MusicResponseSwaggerDTO {
   @ApiProperty({ example: 'https://cdn.sonoriza.com/musics/masada.mp3' })
   url!: string
 
+  @ApiProperty({ example: 'genre-id-uuid', nullable: true })
+  genreId!: string | null
+
   @ApiProperty({ example: 'Rap', nullable: true })
   genre!: string | null
 

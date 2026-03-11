@@ -5,6 +5,14 @@ export interface ArtistMusicalGenre {
   name: string
 }
 
+export interface ArtistMusic {
+  id: string
+  title: string
+  slug: string
+  audioPath: string
+  coverPath: string | null
+}
+
 export class Artist {
   constructor(
     public readonly id: string,
@@ -13,6 +21,7 @@ export class Artist {
     public like: number,
     public genreIds: string[] = [],
     public musicalGenres: ArtistMusicalGenre[] = [],
+    public musics: ArtistMusic[] = [],
     public createdAt: Date = new Date(),
     public updatedAt: Date = new Date(),
     public deletedAt: Date | null = null,

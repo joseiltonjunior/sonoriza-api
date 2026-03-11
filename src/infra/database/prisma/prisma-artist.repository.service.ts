@@ -7,10 +7,15 @@ import {
   PrismaArtistWithRelations,
 } from './mappers/prisma-artist.mapper'
 
-const artistIncludeWithGenres = {
+const artistIncludeWithGenresAndMusics = {
   musicalGenres: {
     include: {
       genre: true,
+    },
+  },
+  musics: {
+    include: {
+      music: true,
     },
   },
 }
@@ -36,7 +41,7 @@ export class PrismaArtistRepository implements ArtistsRepository {
   async findById(id: string): Promise<Artist | null> {
     const artist = await this.prisma.artist.findUnique({
       where: { id },
-      include: artistIncludeWithGenres,
+      include: artistIncludeWithGenresAndMusics,
     })
 
     if (!artist || artist.deletedAt) {
@@ -61,7 +66,7 @@ export class PrismaArtistRepository implements ArtistsRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: artistIncludeWithGenres,
+        include: artistIncludeWithGenresAndMusics,
       }),
       this.prisma.artist.count({
         where: { deletedAt: null },

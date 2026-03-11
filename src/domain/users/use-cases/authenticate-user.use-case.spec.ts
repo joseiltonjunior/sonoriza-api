@@ -10,11 +10,17 @@ describe('AuthenticateUserUseCase', () => {
     const createUser = new CreateUserUseCase(repo)
     const authUseCase = new AuthenticateUserUseCase(repo)
 
-    await createUser.execute({
+    const created = await createUser.execute({
       name: 'John Doe',
       email: 'john@example.com',
       password: '123456',
     })
+
+    const user = await repo.findById(created.id)
+    if (user) {
+      user.setActiveStatus(true)
+      await repo.update(user)
+    }
 
     const result = await authUseCase.execute({
       email: 'john@example.com',
@@ -46,17 +52,11 @@ describe('AuthenticateUserUseCase', () => {
     const createUser = new CreateUserUseCase(repo)
     const authUseCase = new AuthenticateUserUseCase(repo)
 
-    const created = await createUser.execute({
+    await createUser.execute({
       name: 'John Doe',
       email: 'john@example.com',
       password: '123456',
     })
-
-    const user = await repo.findById(created.id)
-    if (user) {
-      user.softDelete()
-      await repo.update(user)
-    }
 
     await expect(
       authUseCase.execute({
