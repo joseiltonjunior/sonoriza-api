@@ -4,6 +4,13 @@ export const envSchema = z.object({
   DATABASE_URL: z.url(),
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
+  AWS_REGION: z.string().default('sa-east-1'),
+  AWS_ACCESS_KEY_ID: z.string(),
+  AWS_SECRET_ACCESS_KEY: z.string(),
+  AWS_S3_BUCKET: z.string().default('sonoriza-media'),
+  CLOUDFRONT_DOMAIN: z.string(),
+  UPLOAD_LAMBDA_SIGN_FUNCTION_NAME: z.string(),
+  UPLOAD_MAX_FILE_SIZE_MB: z.coerce.number().default(12),
   //   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().optional().default(3333),
 })

@@ -36,5 +36,6 @@ describe('Create account (E2E)', () => {
     expect(response.statusCode).toBe(201)
     expect(response.body.photoUrl).toBeNull()
     expect(userOnDatabase).toBeTruthy()
+    expect(userOnDatabase?.isActive).toBe(false)
   })
 })

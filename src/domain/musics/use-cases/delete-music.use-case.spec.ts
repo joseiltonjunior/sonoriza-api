@@ -36,9 +36,10 @@ describe('DeleteMusicUseCase', () => {
     await useCase.execute(music.id)
 
     const deleted = await repo.findById(music.id)
+    const stored = repo.items.find((item) => item.id === music.id)
 
-    expect(deleted).toBeTruthy()
-    expect(deleted?.deletedAt).toBeInstanceOf(Date)
+    expect(deleted).toBeNull()
+    expect(stored?.deletedAt).toBeInstanceOf(Date)
   })
 
   it('should throw when music does not exist', async () => {

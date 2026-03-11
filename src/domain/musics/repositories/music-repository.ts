@@ -4,7 +4,11 @@ export interface MusicRepository {
   create(music: Music): Promise<void>
   findById(id: string): Promise<Music | null>
   findBySlug(slug: string): Promise<Music | null>
-  findMany(params: { page: number; limit: number }): Promise<{
+  findMany(params: {
+    page: number
+    limit: number
+    artistId?: string
+  }): Promise<{
     data: Music[]
     total: number
   }>
