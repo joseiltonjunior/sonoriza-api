@@ -8,6 +8,26 @@ class MusicalGenreItemSwaggerDTO {
   name!: string
 }
 
+class ArtistMusicItemSwaggerDTO {
+  @ApiProperty({ example: 'music-id-uuid' })
+  id!: string
+
+  @ApiProperty({ example: 'Masada' })
+  title!: string
+
+  @ApiProperty({ example: 'masada' })
+  slug!: string
+
+  @ApiProperty({ example: 'https://cdn.sonoriza.com/musics/masada.mp3' })
+  audioPath!: string
+
+  @ApiProperty({
+    example: 'https://cdn.sonoriza.com/covers/masada.jpg',
+    nullable: true,
+  })
+  coverPath!: string | null
+}
+
 export class CreateArtistResponseSwaggerDTO {
   @ApiProperty({ example: 'artist-id-uuid' })
   id!: string
@@ -26,4 +46,7 @@ export class CreateArtistResponseSwaggerDTO {
 
   @ApiProperty({ type: [MusicalGenreItemSwaggerDTO] })
   musicalGenres!: MusicalGenreItemSwaggerDTO[]
+
+  @ApiProperty({ type: [ArtistMusicItemSwaggerDTO] })
+  musics!: ArtistMusicItemSwaggerDTO[]
 }

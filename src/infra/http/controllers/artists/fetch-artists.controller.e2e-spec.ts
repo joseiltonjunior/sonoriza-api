@@ -26,7 +26,7 @@ describe('Fetch artists (E2E)', () => {
     expect(response.statusCode).toBe(401)
   })
 
-  test('[GET]/artists should fetch paginated artists for authenticated USER/ADMIN', async () => {
+  test('[GET]/artists should fetch paginated artists with musics for authenticated USER/ADMIN', async () => {
     const { token } = await authenticateTestUser(app, prisma, Role.USER)
     const prefix = `fetch-artist-${Date.now()}-${Math.random()}`
 
@@ -38,6 +38,24 @@ describe('Fetch artists (E2E)', () => {
         },
       })
     }
+
+    const featuredArtist = await prisma.artist.create({
+      data: {
+        name: `${prefix}-featured`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-featured.jpg`,
+      },
+    })
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-music-1`,
+        slug: `${prefix}-music-1`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-music-1.mp3`,
+        artists: {
+          create: [{ artistId: featuredArtist.id }],
+        },
+      },
+    })
 
     const toDelete = await prisma.artist.findFirst({
       where: { name: `${prefix}-25` },
@@ -57,10 +75,17 @@ describe('Fetch artists (E2E)', () => {
     expect(response.statusCode).toBe(200)
     expect(response.body.data.length).toBeLessThanOrEqual(20)
     expect(response.body.meta.page).toBe(1)
+
+    const artistResult = response.body.data.find(
+      (item: { name: string }) =>
+        typeof item.name === 'string' && item.name === `${prefix}-featured`,
+    )
+
+    expect(artistResult).toBeTruthy()
+    expect(Array.isArray(artistResult.musics)).toBe(true)
     expect(
-      response.body.data.some(
-        (item: { name: string }) =>
-          typeof item.name === 'string' && item.name.startsWith(prefix),
+      artistResult.musics.some(
+        (music: { title: string }) => music.title === `${prefix}-music-1`,
       ),
     ).toBe(true)
   })

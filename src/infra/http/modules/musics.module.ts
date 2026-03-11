@@ -9,11 +9,13 @@ import { CreateMusicUseCase } from '@/domain/musics/use-cases/create-music.use-c
 import { FetchMusicsUseCase } from '@/domain/musics/use-cases/fetch-music.use-case'
 import { UpdateMusicUseCase } from '@/domain/musics/use-cases/update-music.use-case'
 import { DeleteMusicUseCase } from '@/domain/musics/use-cases/delete-music.use-case'
+import { GetMusicByIdUseCase } from '@/domain/musics/use-cases/get-music-by-id.use-case'
 import {
   MusicRepository,
   MusicRepositoryToken,
 } from '@/domain/musics/repositories/music-repository'
 import { FetchMusicsController } from '../controllers/musics/fetch-musics.controller'
+import { GetMusicByIdController } from '../controllers/musics/get-music-by-id.controller'
 import { UpdateMusicController } from '../controllers/musics/update-music.controller'
 import { DeleteMusicController } from '../controllers/musics/delete-music.controller'
 import {
@@ -32,6 +34,7 @@ import { RolesGuard } from '@/infra/auth/roles.guard'
   controllers: [
     CreateMusicController,
     FetchMusicsController,
+    GetMusicByIdController,
     UpdateMusicController,
     DeleteMusicController,
   ],
@@ -62,6 +65,11 @@ import { RolesGuard } from '@/infra/auth/roles.guard'
     {
       provide: FetchMusicsUseCase,
       useFactory: (repo: MusicRepository) => new FetchMusicsUseCase(repo),
+      inject: [MusicRepositoryToken],
+    },
+    {
+      provide: GetMusicByIdUseCase,
+      useFactory: (repo: MusicRepository) => new GetMusicByIdUseCase(repo),
       inject: [MusicRepositoryToken],
     },
     {

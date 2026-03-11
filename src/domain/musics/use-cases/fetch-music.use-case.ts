@@ -6,12 +6,13 @@ import { FetchMusicsResponseDTO } from '../dtos/fetch-musics-response.dto'
 export class FetchMusicsUseCase {
   constructor(private musicRepository: MusicRepository) {}
 
-  async execute({ page }: FetchMusicsDTO): Promise<FetchMusicsResponseDTO> {
+  async execute({ page, artistId }: FetchMusicsDTO): Promise<FetchMusicsResponseDTO> {
     const limit = 20
 
     const { data, total } = await this.musicRepository.findMany({
       page,
       limit,
+      artistId,
     })
 
     const lastPage = Math.ceil(total / limit)

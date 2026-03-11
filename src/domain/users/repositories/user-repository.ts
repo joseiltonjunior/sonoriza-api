@@ -4,6 +4,10 @@ import { User } from '../entities/user'
 export interface UserRepository {
   findByEmail(email: string): Promise<User | null>
   findById(id: string): Promise<User | null>
+  findMany(params: { page: number; limit: number }): Promise<{
+    data: User[]
+    total: number
+  }>
   create(data: CreateUserDTO): Promise<User>
   update(user: User): Promise<void>
 }

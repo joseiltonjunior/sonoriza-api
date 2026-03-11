@@ -49,12 +49,32 @@ export class PrismaMusicRepository implements MusicRepository {
     })
   }
 
-  async findMany({ page, limit }: { page: number; limit: number }) {
+  async findMany({
+    page,
+    limit,
+    artistId,
+  }: {
+    page: number
+    limit: number
+    artistId?: string
+  }) {
     const skip = (page - 1) * limit
+    const where: Prisma.MusicWhereInput = {
+      deletedAt: null,
+      ...(artistId
+        ? {
+            artists: {
+              some: {
+                artistId,
+              },
+            },
+          }
+        : {}),
+    }
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.music.findMany({
-        where: { deletedAt: null },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -70,7 +90,7 @@ export class PrismaMusicRepository implements MusicRepository {
         },
       }),
       this.prisma.music.count({
-        where: { deletedAt: null },
+        where,
       }),
     ])
 
@@ -97,7 +117,7 @@ export class PrismaMusicRepository implements MusicRepository {
       },
     })
 
-    if (!music) return null
+    if (!music || music.deletedAt !== null) return null
 
     return PrismaMusicMapper.toDomain(
       music as unknown as PrismaMusicWithRelations,
@@ -119,7 +139,7 @@ export class PrismaMusicRepository implements MusicRepository {
       },
     })
 
-    if (!music) return null
+    if (!music || music.deletedAt !== null) return null
 
     return PrismaMusicMapper.toDomain(
       music as unknown as PrismaMusicWithRelations,

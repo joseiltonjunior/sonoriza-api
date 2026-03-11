@@ -9,21 +9,45 @@ export class InMemoryMusicRepository implements MusicRepository {
   }
 
   async findById(id: string): Promise<Music | null> {
-    return this.items.find((music) => music.id === id) ?? null
+    const music = this.items.find((item) => item.id === id)
+
+    if (!music || music.deletedAt !== null) {
+      return null
+    }
+
+    return music
   }
 
   async findBySlug(slug: string): Promise<Music | null> {
-    return this.items.find((music) => music.slug === slug) ?? null
+    const music = this.items.find((item) => item.slug === slug)
+
+    if (!music || music.deletedAt !== null) {
+      return null
+    }
+
+    return music
   }
 
   async findMany({
     page,
     limit,
+    artistId,
   }: {
     page: number
     limit: number
+    artistId?: string
   }): Promise<{ data: Music[]; total: number }> {
-    const filtered = this.items.filter((music) => music.deletedAt === null)
+    const filtered = this.items.filter((music) => {
+      if (music.deletedAt !== null) {
+        return false
+      }
+
+      if (!artistId) {
+        return true
+      }
+
+      return music.artistIds.includes(artistId)
+    })
 
     const total = filtered.length
     const start = (page - 1) * limit

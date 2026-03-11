@@ -27,6 +27,7 @@ describe('Authenticate account (E2E)', () => {
         name: 'John Doe',
         email,
         password: await hash('123456', 8),
+        isActive: true,
       },
     })
 
