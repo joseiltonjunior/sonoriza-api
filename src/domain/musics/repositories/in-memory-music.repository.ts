@@ -32,21 +32,42 @@ export class InMemoryMusicRepository implements MusicRepository {
     page,
     limit,
     artistId,
+    title,
+    album,
   }: {
     page: number
     limit: number
     artistId?: string
+    title?: string
+    album?: string
   }): Promise<{ data: Music[]; total: number }> {
+    const normalizedTitle = title?.toLowerCase()
+    const normalizedAlbum = album?.toLowerCase()
+
     const filtered = this.items.filter((music) => {
       if (music.deletedAt !== null) {
         return false
       }
 
-      if (!artistId) {
-        return true
+      if (artistId && !music.artistIds.includes(artistId)) {
+        return false
       }
 
-      return music.artistIds.includes(artistId)
+      if (
+        normalizedTitle &&
+        !music.title.toLowerCase().includes(normalizedTitle)
+      ) {
+        return false
+      }
+
+      if (
+        normalizedAlbum &&
+        !(music.album?.toLowerCase().includes(normalizedAlbum) ?? false)
+      ) {
+        return false
+      }
+
+      return true
     })
 
     const total = filtered.length

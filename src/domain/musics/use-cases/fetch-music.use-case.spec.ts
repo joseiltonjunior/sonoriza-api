@@ -2,13 +2,18 @@ import { Music } from '../entities/music'
 import { InMemoryMusicRepository } from '../repositories/in-memory-music.repository'
 import { FetchMusicsUseCase } from './fetch-music.use-case'
 
-function makeMusic(index: number, artistIds: string[] = []) {
+function makeMusic(
+  index: number,
+  artistIds: string[] = [],
+  title?: string,
+  album?: string | null,
+) {
   return new Music(
     `music-${index}`,
-    `Music ${index}`,
+    title ?? `Music ${index}`,
     `music-${index}`,
     `https://cdn.sonoriza.com/musics/${index}.mp3`,
-    null,
+    album ?? null,
     null,
     null,
     0,
@@ -83,6 +88,50 @@ describe('FetchMusicsUseCase', () => {
 
     expect(result.data).toHaveLength(2)
     expect(result.data.map((music) => music.id)).toEqual(['music-1', 'music-3'])
+    expect(result.meta).toEqual({
+      total: 2,
+      page: 1,
+      lastPage: 1,
+    })
+  })
+
+  it('should filter musics by title when provided', async () => {
+    const repo = new InMemoryMusicRepository()
+    const useCase = new FetchMusicsUseCase(repo)
+
+    await repo.create(makeMusic(1, [], 'Sonho de Amor'))
+    await repo.create(makeMusic(2, [], 'Sonho de Menina'))
+    await repo.create(makeMusic(3, [], 'Outra Faixa'))
+
+    const result = await useCase.execute({ page: 1, title: 'sonho' })
+
+    expect(result.data).toHaveLength(2)
+    expect(result.data.map((music) => music.title)).toEqual([
+      'Sonho de Amor',
+      'Sonho de Menina',
+    ])
+    expect(result.meta).toEqual({
+      total: 2,
+      page: 1,
+      lastPage: 1,
+    })
+  })
+
+  it('should filter musics by album when provided', async () => {
+    const repo = new InMemoryMusicRepository()
+    const useCase = new FetchMusicsUseCase(repo)
+
+    await repo.create(makeMusic(1, [], 'Faixa 1', 'Best Of 2026'))
+    await repo.create(makeMusic(2, [], 'Faixa 2', 'Best Hits'))
+    await repo.create(makeMusic(3, [], 'Faixa 3', 'Ao Vivo'))
+
+    const result = await useCase.execute({ page: 1, album: 'best' })
+
+    expect(result.data).toHaveLength(2)
+    expect(result.data.map((music) => music.album)).toEqual([
+      'Best Of 2026',
+      'Best Hits',
+    ])
     expect(result.meta).toEqual({
       total: 2,
       page: 1,

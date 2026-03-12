@@ -7,6 +7,6 @@ export type UploadableFile = {
 
 export type UploadFilesDTO = {
   files: UploadableFile[]
-  folder: 'artists' | 'musics'
+  folder: 'artists' | 'musics' | 'users' | 'playlists'
   slug: string
 }

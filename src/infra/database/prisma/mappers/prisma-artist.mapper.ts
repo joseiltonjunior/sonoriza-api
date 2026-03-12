@@ -35,6 +35,7 @@ export class PrismaArtistMapper {
         title: music.title,
         slug: music.slug,
         audioPath: music.audioPath,
+        album: music.album,
         coverPath: music.coverPath,
       }))
 

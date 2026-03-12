@@ -21,11 +21,34 @@ export class InMemoryArtistsRepository implements ArtistsRepository {
   async findMany({
     page,
     limit,
+    name,
+    genreId,
   }: {
     page: number
     limit: number
+    name?: string
+    genreId?: string
   }): Promise<{ data: Artist[]; total: number }> {
-    const filtered = this.items.filter((artist) => artist.deletedAt === null)
+    const normalizedName = name?.toLowerCase()
+
+    const filtered = this.items.filter((artist) => {
+      if (artist.deletedAt !== null) {
+        return false
+      }
+
+      if (
+        normalizedName &&
+        !artist.name.toLowerCase().includes(normalizedName)
+      ) {
+        return false
+      }
+
+      if (genreId && !artist.genreIds.includes(genreId)) {
+        return false
+      }
+
+      return true
+    })
 
     const total = filtered.length
     const start = (page - 1) * limit

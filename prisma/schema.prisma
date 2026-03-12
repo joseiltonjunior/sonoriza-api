@@ -24,12 +24,13 @@ model User {
   email    String   @unique
   password String
   role     Role     @default(USER)
-  isActive Boolean  @default(false) @map("is_active")
+  isActive Boolean  @default(true) @map("is_active")
   photoUrl String?  @map("photo_url")
 
   musicLikes  MusicLike[]
   artistLikes ArtistLike[]
   musicViews  MusicView[]
+  sessions    Session[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -161,6 +162,29 @@ model ArtistLike {
   @@map("artist_likes")
 }
 
+model Session {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  refreshTokenJti  String    @unique @map("refresh_token_jti")
+  refreshTokenHash String    @map("refresh_token_hash")
+  expiresAt        DateTime  @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  lastUsedAt       DateTime? @map("last_used_at")
+  replacedById     String?   @map("replaced_by_id")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy Session?  @relation("SessionReplacement", fields: [replacedById], references: [id])
+  replaced   Session[] @relation("SessionReplacement")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("sessions")
+}
+
 model MusicView {
   id            String  @id @default(uuid())
   musicId       String  @map("music_id")
@@ -179,5 +203,3 @@ model MusicView {
   @@index([musicId, createdAt])
   @@map("music_views")
 }
-
-

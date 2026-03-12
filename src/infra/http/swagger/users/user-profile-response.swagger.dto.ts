@@ -23,6 +23,11 @@ export class UserProfileResponseSwaggerDTO {
   role!: 'USER' | 'ADMIN'
 
   @ApiProperty({
+    example: true,
+  })
+  isActive!: boolean
+
+  @ApiProperty({
     example: 'https://cdn.example.com/profiles/john.jpg',
     nullable: true,
   })

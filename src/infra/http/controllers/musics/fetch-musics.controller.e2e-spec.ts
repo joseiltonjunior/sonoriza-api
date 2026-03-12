@@ -94,4 +94,97 @@ describe('Fetch musics (E2E)', () => {
 
     expect(containsOnlyArtistA).toBe(true)
   })
+
+  test('[GET]/musics should filter by title query', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.USER)
+    const prefix = `fetch-musics-title-${Date.now()}-${Math.random()}`
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-sonho-de-amor`,
+        slug: `${prefix}-sonho-de-amor`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-sonho-de-amor.mp3`,
+      },
+    })
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-sonho-de-menina`,
+        slug: `${prefix}-sonho-de-menina`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-sonho-de-menina.mp3`,
+      },
+    })
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-alegria`,
+        slug: `${prefix}-alegria`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-alegria.mp3`,
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .get(`/musics?page=1&title=${prefix}-sonho`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.meta.page).toBe(1)
+    expect(response.body.data).toHaveLength(2)
+    expect(
+      response.body.data.map((music: { title: string }) => music.title),
+    ).toEqual(
+      expect.arrayContaining([
+        `${prefix}-sonho-de-amor`,
+        `${prefix}-sonho-de-menina`,
+      ]),
+    )
+  })
+
+  test('[GET]/musics should filter by album query', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.USER)
+    const prefix = `fetch-musics-album-${Date.now()}-${Math.random()}`
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-faixa-1`,
+        slug: `${prefix}-faixa-1`,
+        album: `${prefix}-best-of`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-faixa-1.mp3`,
+      },
+    })
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-faixa-2`,
+        slug: `${prefix}-faixa-2`,
+        album: `${prefix}-best-hits`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-faixa-2.mp3`,
+      },
+    })
+
+    await prisma.music.create({
+      data: {
+        title: `${prefix}-faixa-3`,
+        slug: `${prefix}-faixa-3`,
+        album: `${prefix}-ao-vivo`,
+        audioPath: `https://cdn.sonoriza.com/musics/${prefix}-faixa-3.mp3`,
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .get(`/musics?page=1&album=${prefix}-best`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.meta.page).toBe(1)
+    expect(response.body.data).toHaveLength(2)
+    expect(
+      response.body.data.map((music: { album: string | null }) => music.album),
+    ).toEqual(
+      expect.arrayContaining([
+        `${prefix}-best-of`,
+        `${prefix}-best-hits`,
+      ]),
+    )
+  })
 })

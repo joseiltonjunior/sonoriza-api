@@ -17,8 +17,23 @@ import { FetchArtistsResponseSwaggerDTO } from '../../swagger/artists/fetch-arti
 import { ArtistPresenter } from '../../presenters/artist.presenter'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
+const optionalTrimmedString = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmed = value.trim()
+
+    return trimmed === '' ? undefined : trimmed
+  },
+  z.string().min(1).optional(),
+)
+
 const fetchArtistsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
+  name: optionalTrimmedString,
+  genreId: z.uuid().optional(),
 })
 
 type FetchArtistsQuery = z.infer<typeof fetchArtistsQuerySchema>
@@ -41,6 +56,18 @@ export class FetchArtistsController {
     required: false,
     example: 1,
   })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    example: 'natan',
+    description: 'Filter artists by name',
+  })
+  @ApiQuery({
+    name: 'genreId',
+    required: false,
+    example: 'af7b8307-19a6-4474-a10d-b6ae8a06f66f',
+    description: 'Filter artists by genre id',
+  })
   @ApiOkResponse({
     description: 'Paginated list of artists',
     type: FetchArtistsResponseSwaggerDTO,
@@ -49,6 +76,8 @@ export class FetchArtistsController {
   async handle(@Query(queryValidationPipe) query: FetchArtistsQuery) {
     const dto: FetchArtistsDTO = {
       page: query.page,
+      name: query.name,
+      genreId: query.genreId,
     }
 
     const response = await this.fetchArtistsUseCase.execute(dto)

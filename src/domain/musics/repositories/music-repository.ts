@@ -8,6 +8,8 @@ export interface MusicRepository {
     page: number
     limit: number
     artistId?: string
+    title?: string
+    album?: string
   }): Promise<{
     data: Music[]
     total: number

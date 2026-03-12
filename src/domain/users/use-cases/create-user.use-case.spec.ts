@@ -3,7 +3,7 @@ import { UserAlreadyExistsError } from '../errors/user-already-exists.error'
 import { InMemoryUserRepository } from '../repositories/in-memory-user.repository'
 
 describe('CreateUserUseCase', () => {
-  it('should create a new user as inactive by default', async () => {
+  it('should create a new user as active by default', async () => {
     const repo = new InMemoryUserRepository()
     const useCase = new CreateUserUseCase(repo)
 
@@ -22,7 +22,7 @@ describe('CreateUserUseCase', () => {
     )
 
     expect(repo.items.length).toBe(1)
-    expect(repo.items[0].isActive).toBe(false)
+    expect(repo.items[0].isActive).toBe(true)
   })
 
   it('should not allow creating a user with duplicated email', async () => {
