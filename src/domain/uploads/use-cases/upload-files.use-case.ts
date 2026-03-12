@@ -6,7 +6,7 @@ import { UploadFileTooLargeError } from '../errors/upload-file-too-large.error'
 import { FileSignerService } from './file-signer.service'
 import { StorageService } from './storage.service'
 
-const allowedFolders = ['artists', 'musics'] as const
+const allowedFolders = ['artists', 'musics', 'users', 'playlists'] as const
 
 const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp']
 const audioMimeTypes = ['audio/mpeg', 'audio/mp3']
@@ -71,7 +71,7 @@ export class UploadFilesUseCase {
   }
 
   private validateFile(
-    folder: 'artists' | 'musics',
+    folder: 'artists' | 'musics' | 'users' | 'playlists',
     file: UploadFilesDTO['files'][number],
   ) {
     const isImage = imageMimeTypes.includes(file.mimetype)

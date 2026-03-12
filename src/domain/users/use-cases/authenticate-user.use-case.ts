@@ -9,7 +9,7 @@ export class AuthenticateUserUseCase {
 
   async execute(input: AuthenticateDTO): Promise<{
     id: string
-    role: string
+    role: 'ADMIN' | 'USER'
     email: string
     name: string
     isActive: boolean

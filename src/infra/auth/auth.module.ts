@@ -18,7 +18,12 @@ import { DatabaseModule } from '../database/database.module'
         const publicKey = config.get('JWT_PUBLIC_KEY', { infer: true })
 
         return {
-          signOptions: { algorithm: 'RS256', expiresIn: '3h' },
+          signOptions: {
+            algorithm: 'RS256',
+            expiresIn: config.get('JWT_ACCESS_TOKEN_EXPIRES_IN', {
+              infer: true,
+            }),
+          },
           privateKey: Buffer.from(privateKey, 'base64'),
           publicKey: Buffer.from(publicKey, 'base64'),
         }

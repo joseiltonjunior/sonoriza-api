@@ -27,5 +27,9 @@ export async function authenticateTestUser(
     .post('/sessions')
     .send({ email, password })
 
-  return { token: auth.body.access_token, user }
+  return {
+    token: auth.body.access_token,
+    refreshToken: auth.body.refresh_token,
+    user,
+  }
 }
