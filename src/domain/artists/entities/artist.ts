@@ -10,6 +10,7 @@ export interface ArtistMusic {
   title: string
   slug: string
   audioPath: string
+  album: string | null
   coverPath: string | null
 }
 

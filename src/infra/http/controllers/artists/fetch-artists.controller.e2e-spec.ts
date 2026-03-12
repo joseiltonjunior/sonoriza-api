@@ -89,4 +89,109 @@ describe('Fetch artists (E2E)', () => {
       ),
     ).toBe(true)
   })
+
+  test('[GET]/artists should filter by name query', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.USER)
+    const prefix = `fetch-artist-name-${Date.now()}-${Math.random()}`
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-natanzinho`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-natanzinho.jpg`,
+      },
+    })
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-nathan`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-nathan.jpg`,
+      },
+    })
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-joao`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-joao.jpg`,
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .get(`/artists?page=1&name=${prefix}-nat`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.meta.page).toBe(1)
+    expect(response.body.data).toHaveLength(2)
+    expect(
+      response.body.data.map((artist: { name: string }) => artist.name),
+    ).toEqual(
+      expect.arrayContaining([
+        `${prefix}-natanzinho`,
+        `${prefix}-nathan`,
+      ]),
+    )
+  })
+
+  test('[GET]/artists should filter by genreId query', async () => {
+    const { token } = await authenticateTestUser(app, prisma, Role.USER)
+    const prefix = `fetch-artist-genre-${Date.now()}-${Math.random()}`
+
+    const genreA = await prisma.genre.create({
+      data: {
+        name: `${prefix}-genre-a`,
+      },
+    })
+
+    const genreB = await prisma.genre.create({
+      data: {
+        name: `${prefix}-genre-b`,
+      },
+    })
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-artist-a`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-artist-a.jpg`,
+        musicalGenres: {
+          create: [{ genreId: genreA.id }],
+        },
+      },
+    })
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-artist-b`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-artist-b.jpg`,
+        musicalGenres: {
+          create: [{ genreId: genreB.id }],
+        },
+      },
+    })
+
+    await prisma.artist.create({
+      data: {
+        name: `${prefix}-artist-ab`,
+        photoURL: `https://cdn.sonoriza.com/artists/${prefix}-artist-ab.jpg`,
+        musicalGenres: {
+          create: [{ genreId: genreA.id }, { genreId: genreB.id }],
+        },
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .get(`/artists?page=1&genreId=${genreA.id}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body.meta.page).toBe(1)
+    expect(response.body.data).toHaveLength(2)
+    expect(
+      response.body.data.map((artist: { name: string }) => artist.name),
+    ).toEqual(
+      expect.arrayContaining([
+        `${prefix}-artist-a`,
+        `${prefix}-artist-ab`,
+      ]),
+    )
+  })
 })

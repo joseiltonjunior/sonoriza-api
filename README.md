@@ -2,20 +2,23 @@
 
 ![Sonoriza Logo](https://i.ibb.co/hZ7QNB3/sonoriza.png)
 
-Backend da Sonoriza construida com NestJS, Prisma e PostgreSQL.
+Sonoriza backend built with NestJS, Prisma, and PostgreSQL.
 
 ## Overview
 
-A API hoje cobre:
-- autenticacao JWT com RS256
-- ciclo de vida de usuarios (`/accounts`, `/sessions`, `/me`)
-- administracao de status de usuario
-- CRUD de artistas, generos e musicas
-- upload de arquivos para S3 com assinatura via Lambda
-- metricas de bucket S3 via CloudWatch
-- Swagger em `/api`
-- validacao com Zod
-- testes unitarios e e2e com Vitest
+The API currently covers:
+- JWT authentication with RS256
+- access token + refresh token with session rotation
+- user lifecycle (`/accounts`, `/me`, `/users`)
+- session endpoints (`/sessions`, `/sessions/refresh`, `/sessions/logout`)
+- user status administration
+- CRUD for artists, genres, and musics
+- file upload to S3 with Lambda-based signing
+- standalone CloudFront URL signing through the API
+- S3 bucket metrics through CloudWatch
+- Swagger at `/api`
+- request validation with Zod
+- unit and e2e tests with Vitest
 
 ## Stack
 
@@ -33,7 +36,7 @@ A API hoje cobre:
 
 - Node.js 20+
 - pnpm
-- Docker (opcional, para PostgreSQL local)
+- Docker (optional, for local PostgreSQL)
 
 ## Quick setup
 
@@ -49,7 +52,7 @@ pnpm install
 docker compose up -d
 ```
 
-O `docker-compose.yml` sobe um banco com:
+The `docker-compose.yml` starts a database with:
 - host: `localhost`
 - port: `5432`
 - user: `sonoriza`
@@ -58,20 +61,22 @@ O `docker-compose.yml` sobe um banco com:
 
 ### 3) Configure environment
 
-Atualize o `.env` com pelo menos:
+Update `.env` with at least:
 
 ```env
 DATABASE_URL="postgresql://sonoriza:sonoriza@localhost:5432/sonoriza?schema=public"
 PORT=3333
 JWT_PRIVATE_KEY="<BASE64_PRIVATE_KEY_PEM>"
 JWT_PUBLIC_KEY="<BASE64_PUBLIC_KEY_PEM>"
+JWT_ACCESS_TOKEN_EXPIRES_IN="3h"
+JWT_REFRESH_TOKEN_EXPIRES_IN="30d"
 AWS_REGION="sa-east-1"
 AWS_ACCESS_KEY_ID="replace-me"
 AWS_SECRET_ACCESS_KEY="replace-me"
 AWS_S3_BUCKET="sonoriza-media"
 CLOUDFRONT_DOMAIN="https://cdn.example.com/"
 UPLOAD_LAMBDA_SIGN_FUNCTION_NAME="cloudfront-presign-url"
-UPLOAD_MAX_FILE_SIZE_MB=12
+UPLOAD_MAX_FILE_SIZE_MB=15
 ```
 
 ### 4) Generate Prisma client and apply migrations
@@ -81,13 +86,13 @@ pnpm prisma generate
 pnpm prisma migrate deploy
 ```
 
-Para desenvolvimento local:
+For local development:
 
 ```bash
 pnpm prisma migrate dev
 ```
 
-### 5) Start API
+### 5) Start the API
 
 ```bash
 pnpm start:dev
@@ -98,25 +103,27 @@ Swagger: `http://localhost:3333/api`
 
 ## Scripts
 
-- `pnpm build` - build de producao
-- `pnpm start` - start padrao
+- `pnpm build` - production build
+- `pnpm start` - default start
 - `pnpm start:dev` - watch mode
-- `pnpm start:prod` - run de `dist`
+- `pnpm start:prod` - run from `dist`
 - `pnpm lint` - lint
-- `pnpm format` - formatacao
-- `pnpm test` - testes unitarios
-- `pnpm test:e2e` - testes e2e
-- `pnpm test:cov` - coverage unitario
-- `pnpm test:e2e:cov` - coverage e2e
+- `pnpm format` - formatting
+- `pnpm test` - unit tests
+- `pnpm test:e2e` - e2e tests
+- `pnpm test:cov` - unit coverage
+- `pnpm test:e2e:cov` - e2e coverage
 
 ## Authentication and authorization
 
-- JWT assinado com `RS256`
-- o payload do token inclui `sub` e `role` (`USER` | `ADMIN`)
-- rotas protegidas exigem usuario autenticado
-- rotas administrativas exigem `role = ADMIN`
-- login exige `isActive = true` e `deletedAt = null`
-- contas novas sao criadas desativadas por padrao
+- JWT is signed with `RS256`
+- the access token includes `sub` and `role` (`USER` | `ADMIN`)
+- protected routes require a valid access token
+- admin routes require `role = ADMIN`
+- login requires `isActive = true` and `deletedAt = null`
+- new accounts are created as active by default
+- refresh tokens are persisted in `sessions`
+- refresh tokens use `jti`, hashed storage, and mandatory rotation
 
 ## Endpoints
 
@@ -124,68 +131,81 @@ Swagger: `http://localhost:3333/api`
 
 Base paths:
 - `/accounts`
-- `/sessions`
 - `/me`
 - `/users`
 
-- `POST /accounts` - cria conta (usuario nasce inativo)
-- `POST /sessions` - autentica e retorna `access_token`
-- `GET /me` - retorna perfil autenticado
-- `PATCH /me` - atualiza proprio perfil
-- `DELETE /me` - soft delete do proprio usuario
-- `GET /users?page=1` - lista paginada de usuarios (ADMIN)
-- `PATCH /users/:id/status` - ativa ou desativa usuario (ADMIN)
+- `POST /accounts` - create account
+- `GET /me` - return authenticated profile, including `isActive`
+- `PATCH /me` - update own profile
+- `DELETE /me` - soft delete own user
+- `GET /users?page=1` - paginated user list (ADMIN)
+- `PATCH /users/:id/status` - activate or deactivate a user (ADMIN)
+
+### Sessions
+
+Base path: `/sessions`
+
+- `POST /sessions` - authenticate and return `access_token`, `refresh_token`, and `user`
+- `POST /sessions/refresh` - rotate the session and return a new `access_token` and `refresh_token`
+- `POST /sessions/logout` - revoke the current session using `refresh_token`
 
 ### Musics
 
 Base path: `/musics`
 
-- `POST /musics` - cria musica (ADMIN)
-- `GET /musics?page=1` - lista paginada autenticada
-- `GET /musics?page=1&artistId=<artist-id>` - lista paginada filtrando por artista
-- `GET /musics/:id` - retorna musica por id
-- `PATCH /musics/:id` - atualiza musica (ADMIN)
-- `DELETE /musics/:id` - soft delete de musica (ADMIN)
+- `POST /musics` - create music (ADMIN)
+- `GET /musics?page=1` - paginated authenticated list
+- `GET /musics?page=1&title=<term>` - filter by title
+- `GET /musics?page=1&artistId=<artist-id>` - filter by artist
+- `GET /musics?page=1&album=<album>` - filter by album
+- `GET /musics/:id` - get music by id
+- `PATCH /musics/:id` - update music (ADMIN)
+- `DELETE /musics/:id` - soft delete music (ADMIN)
 
 ### Genres
 
 Base path: `/genres`
 
-- `POST /genres` - cria genero (ADMIN)
-- `GET /genres?page=1` - lista paginada autenticada
-- `PATCH /genres/:id` - atualiza genero (ADMIN)
-- `DELETE /genres/:id` - soft delete de genero (ADMIN)
+- `POST /genres` - create genre (ADMIN)
+- `GET /genres?page=1` - paginated authenticated list
+- `PATCH /genres/:id` - update genre (ADMIN)
+- `DELETE /genres/:id` - soft delete genre (ADMIN)
 
 ### Artists
 
 Base path: `/artists`
 
-- `POST /artists` - cria artista (ADMIN)
-- `GET /artists?page=1` - lista paginada autenticada
-- `PATCH /artists/:id` - atualiza artista (ADMIN)
-- `DELETE /artists/:id` - soft delete de artista (ADMIN)
+- `POST /artists` - create artist (ADMIN)
+- `GET /artists?page=1` - paginated authenticated list
+- `GET /artists?page=1&name=<term>` - filter by name
+- `GET /artists?page=1&genreId=<genre-id>` - filter by genre
+- `GET /artists/:id` - get artist by id
+- `PATCH /artists/:id` - update artist (ADMIN)
+- `DELETE /artists/:id` - soft delete artist (ADMIN)
 
-Observacao: `GET /artists` retorna tambem as musicas vinculadas a cada artista.
+Notes:
+- `GET /artists` also returns the musics linked to each artist.
+- `GET /artists/:id` returns linked musics with `album` in the nested payload.
 
 ### Uploads
 
 Base path: `/uploads`
 
-- `POST /uploads` - upload multipart para S3 com assinatura via Lambda (ADMIN)
-- `POST /uploads/sign` - recebe uma URL do CloudFront e retorna `signedUrl` (ADMIN)
+- `POST /uploads` - multipart upload to S3 with Lambda-based signing (ADMIN)
+- `POST /uploads/sign` - receive a CloudFront URL and return `signedUrl` (ADMIN)
 
-Payload de `POST /uploads`:
-- `files` - array de arquivos
-- `folder` - `artists` ou `musics`
-- `slug` - segmento usado na key do arquivo
+`POST /uploads` payload:
+- `files` - file array
+- `folder` - `artists` or `musics`
+- `slug` - segment used in the file key
 
 ### Metrics
 
 Base path: `/metrics`
 
-- `GET /metrics/storage` - retorna metricas do bucket S3 via CloudWatch (ADMIN)
+- `GET /metrics/storage` - return S3 bucket metrics through CloudWatch (ADMIN)
 
-Formato de resposta:
+Response format:
 
 ```json
 {
@@ -211,6 +231,7 @@ src/
     genres/
     metrics/
     musics/
+    sessions/
     uploads/
     users/
   infra/
@@ -230,11 +251,12 @@ prisma/
 
 ## Notes
 
-- Soft delete e aplicado em `users`, `musics`, `genres` e `artists`.
-- Controllers validam requests com Zod.
-- Swagger fica disponivel em `/api`.
-- O signer de arquivos usa Lambda por nome de funcao, nao chamada direta do frontend para AWS.
-- O CMS pode consumir upload, assinatura e metricas sem carregar credenciais AWS.
+- Soft delete is applied to `users`, `musics`, `genres`, and `artists`.
+- Controllers validate requests with Zod.
+- Swagger is available at `/api`.
+- File signing uses a Lambda function by name, not direct frontend AWS access.
+- The CMS and mobile app can consume uploads, signing, and metrics without shipping AWS credentials.
+- Refresh token does not replace the access token on protected routes; it is only used to renew the session.
 
 ## Credits
 

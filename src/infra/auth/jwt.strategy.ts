@@ -36,7 +36,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       select: { id: true, role: true, isActive: true, deletedAt: true },
     })
 
-    if (!user || !user.isActive || !!user.deletedAt || user.role !== parsed.role) {
+    if (
+      !user ||
+      !user.isActive ||
+      !!user.deletedAt ||
+      user.role !== parsed.role
+    ) {
       throw new UnauthorizedException('Invalid token user')
     }
 

@@ -1,7 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 
-import { JwtService } from '@nestjs/jwt'
 import z from 'zod'
 import { AuthenticateUserUseCase } from '@/domain/users/use-cases/authenticate-user.use-case'
 
@@ -15,6 +14,7 @@ import {
 } from '@nestjs/swagger'
 import { AuthenticateRequestSwaggerDTO } from '../../swagger/users/authenticate-request.swagger.dto'
 import { AuthenticateResponseSwaggerDTO } from '../../swagger/users/authenticate-response.swagger.dto'
+import { CreateSessionUseCase } from '@/domain/sessions/use-cases/create-session.use-case'
 
 const authenticateBodySchema = z.object({
   email: z.email(),
@@ -25,19 +25,19 @@ const bodyValidationPipe = new ZodValidationPipe(authenticateBodySchema)
 
 type AuthenticateBodySchema = z.infer<typeof authenticateBodySchema>
 
-@ApiTags('Users')
+@ApiTags('Sessions')
 @Controller('/sessions')
 export class AuthenticateController {
   constructor(
     private authenticateUserUseCase: AuthenticateUserUseCase,
-    private jwt: JwtService,
+    private createSessionUseCase: CreateSessionUseCase,
   ) {}
 
   @Post()
   @ApiOperation({
     summary: 'Authenticate user',
     description:
-      'Authenticates a user using email and password and returns a JWT access token.',
+      'Authenticates a user using email and password and returns access and refresh tokens.',
   })
   @ApiBody({
     type: AuthenticateRequestSwaggerDTO,
@@ -54,22 +54,26 @@ export class AuthenticateController {
     description: 'Invalid request payload',
   })
   async handle(@Body(bodyValidationPipe) body: AuthenticateBodySchema) {
-    const result = await this.authenticateUserUseCase.execute({
+    const user = await this.authenticateUserUseCase.execute({
       email: body.email,
       password: body.password,
     })
 
-    const accessToken = this.jwt.sign({ sub: result.id, role: result.role })
+    const session = await this.createSessionUseCase.execute({
+      userId: user.id,
+      role: user.role,
+    })
 
     return {
-      access_token: accessToken,
+      access_token: session.accessToken,
+      refresh_token: session.refreshToken,
       user: {
-        id: result.id,
-        name: result.name,
-        email: result.email,
-        photoUrl: result.photoUrl,
-        role: result.role,
-        isActive: result.isActive,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        photoUrl: user.photoUrl,
+        role: user.role,
+        isActive: user.isActive,
       },
     }
   }

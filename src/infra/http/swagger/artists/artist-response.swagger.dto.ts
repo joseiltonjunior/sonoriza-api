@@ -21,6 +21,9 @@ class ArtistMusicItemSwaggerDTO {
   @ApiProperty({ example: 'https://cdn.sonoriza.com/musics/masada.mp3' })
   audioPath!: string
 
+  @ApiProperty({ example: 'Best Of', nullable: true })
+  album!: string | null
+
   @ApiProperty({
     example: 'https://cdn.sonoriza.com/covers/masada.jpg',
     nullable: true,

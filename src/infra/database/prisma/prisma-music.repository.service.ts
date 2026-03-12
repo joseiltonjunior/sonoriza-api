@@ -53,10 +53,14 @@ export class PrismaMusicRepository implements MusicRepository {
     page,
     limit,
     artistId,
+    title,
+    album,
   }: {
     page: number
     limit: number
     artistId?: string
+    title?: string
+    album?: string
   }) {
     const skip = (page - 1) * limit
     const where: Prisma.MusicWhereInput = {
@@ -67,6 +71,22 @@ export class PrismaMusicRepository implements MusicRepository {
               some: {
                 artistId,
               },
+            },
+          }
+        : {}),
+      ...(title
+        ? {
+            title: {
+              contains: title,
+              mode: 'insensitive',
+            },
+          }
+        : {}),
+      ...(album
+        ? {
+            album: {
+              contains: album,
+              mode: 'insensitive',
             },
           }
         : {}),
