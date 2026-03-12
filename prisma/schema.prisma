@@ -24,7 +24,7 @@ model User {
   email    String   @unique
   password String
   role     Role     @default(USER)
-  isActive Boolean  @default(false) @map("is_active")
+  isActive Boolean  @default(true) @map("is_active")
   photoUrl String?  @map("photo_url")
 
   musicLikes  MusicLike[]

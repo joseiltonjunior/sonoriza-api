@@ -18,9 +18,24 @@ import { FetchMusicsResponseSwaggerDTO } from '../../swagger/musics/fetch-musics
 import { MusicPresenter } from '../../presenters/music.presenter'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
+const optionalTrimmedString = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    const trimmed = value.trim()
+
+    return trimmed === '' ? undefined : trimmed
+  },
+  z.string().min(1).optional(),
+)
+
 const fetchMusicsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   artistId: z.uuid().optional(),
+  title: optionalTrimmedString,
+  album: optionalTrimmedString,
 })
 
 type FetchMusicsQuery = z.infer<typeof fetchMusicsQuerySchema>
@@ -49,6 +64,18 @@ export class FetchMusicsController {
     example: '67502595-593c-4ada-8f2c-b6cd6a743f61',
     description: 'Filter musics by artist id',
   })
+  @ApiQuery({
+    name: 'title',
+    required: false,
+    example: 'sonho',
+    description: 'Filter musics by title',
+  })
+  @ApiQuery({
+    name: 'album',
+    required: false,
+    example: 'best of',
+    description: 'Filter musics by album',
+  })
   @ApiOkResponse({
     description: 'Paginated list of musics',
     type: FetchMusicsResponseSwaggerDTO,
@@ -58,6 +85,8 @@ export class FetchMusicsController {
     const dto: FetchMusicsDTO = {
       page: query.page,
       artistId: query.artistId,
+      title: query.title,
+      album: query.album,
     }
 
     const response = await this.fetchMusicsUseCase.execute(dto)

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { ArtistsRepository } from '@/domain/artists/repositories/artists-repository'
 import { Artist } from '@/domain/artists/entities/artist'
 import { PrismaService } from './prisma.service'
@@ -54,22 +55,46 @@ export class PrismaArtistRepository implements ArtistsRepository {
   async findMany({
     page,
     limit,
+    name,
+    genreId,
   }: {
     page: number
     limit: number
+    name?: string
+    genreId?: string
   }): Promise<{ data: Artist[]; total: number }> {
     const skip = (page - 1) * limit
+    const where: Prisma.ArtistWhereInput = {
+      deletedAt: null,
+      ...(name
+        ? {
+            name: {
+              contains: name,
+              mode: 'insensitive',
+            },
+          }
+        : {}),
+      ...(genreId
+        ? {
+            musicalGenres: {
+              some: {
+                genreId,
+              },
+            },
+          }
+        : {}),
+    }
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.artist.findMany({
-        where: { deletedAt: null },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: artistIncludeWithGenresAndMusics,
       }),
       this.prisma.artist.count({
-        where: { deletedAt: null },
+        where,
       }),
     ])
 

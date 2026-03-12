@@ -3,5 +3,6 @@ export type ResponseUserProfileDTO = {
   name: string
   email: string
   role: 'ADMIN' | 'USER'
+  isActive: boolean
   photoUrl: string | null
 }
