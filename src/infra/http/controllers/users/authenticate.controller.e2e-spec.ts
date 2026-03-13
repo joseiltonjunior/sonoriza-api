@@ -27,7 +27,7 @@ describe('Authenticate account (E2E)', () => {
         name: 'John Doe',
         email,
         password: await hash('123456', 8),
-        isActive: true,
+        accountStatus: 'ACTIVE',
       },
     })
 
@@ -45,21 +45,45 @@ describe('Authenticate account (E2E)', () => {
         name: 'John Doe',
         email,
         role: 'USER',
-        isActive: true,
+        accountStatus: 'ACTIVE',
         photoUrl: null,
       },
     })
   })
 
-  test('[POST]/sessions should return unauthorized for inactive user', async () => {
-    const email = `inactive-${Date.now()}-${Math.random()}@example.com`
+  test('[POST]/sessions should return forbidden for pending verification account', async () => {
+    const email = `pending-${Date.now()}-${Math.random()}@example.com`
 
     await prisma.user.create({
       data: {
-        name: 'Inactive User',
+        name: 'Pending User',
         email,
         password: await hash('123456', 8),
-        isActive: false,
+        accountStatus: 'PENDING_VERIFICATION',
+      },
+    })
+
+    const response = await request(app.getHttpServer()).post('/sessions').send({
+      email,
+      password: '123456',
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(response.body).toEqual({
+      message: 'Account pending verification',
+      code: 'ACCOUNT_PENDING_VERIFICATION',
+    })
+  })
+
+  test('[POST]/sessions should return unauthorized for suspended user', async () => {
+    const email = `suspended-${Date.now()}-${Math.random()}@example.com`
+
+    await prisma.user.create({
+      data: {
+        name: 'Suspended User',
+        email,
+        password: await hash('123456', 8),
+        accountStatus: 'SUSPENDED',
       },
     })
 

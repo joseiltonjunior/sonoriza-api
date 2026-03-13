@@ -1,12 +1,27 @@
 import { UserNotFoundError } from '../errors/user-not-found.error'
+import { InMemoryAccountVerificationRepository } from '../repositories/in-memory-account-verification.repository'
 import { InMemoryUserRepository } from '../repositories/in-memory-user.repository'
 import { CreateUserUseCase } from './create-user.use-case'
+import { IssueAccountVerificationUseCase } from './issue-account-verification.use-case'
 import { UpdateUserStatusUseCase } from './update-user-status.use-case'
 
+class FakeTransactionalEmailService {
+  async sendAccountVerification() {}
+}
+
 describe('UpdateUserStatusUseCase', () => {
-  it('should update user active status', async () => {
+  it('should update user account status', async () => {
     const repo = new InMemoryUserRepository()
-    const createUser = new CreateUserUseCase(repo)
+    const createUser = new CreateUserUseCase(
+      repo,
+      new IssueAccountVerificationUseCase(
+        new InMemoryAccountVerificationRepository(),
+        new FakeTransactionalEmailService(),
+        10,
+        60,
+        5,
+      ),
+    )
     const useCase = new UpdateUserStatusUseCase(repo)
 
     const created = await createUser.execute({
@@ -16,13 +31,13 @@ describe('UpdateUserStatusUseCase', () => {
     })
 
     const result = await useCase.execute(created.id, {
-      isActive: false,
+      accountStatus: 'SUSPENDED',
     })
 
     expect(result).toEqual(
       expect.objectContaining({
         id: created.id,
-        isActive: false,
+        accountStatus: 'SUSPENDED',
       }),
     )
   })
@@ -33,14 +48,23 @@ describe('UpdateUserStatusUseCase', () => {
 
     await expect(
       useCase.execute('missing-id', {
-        isActive: true,
+        accountStatus: 'ACTIVE',
       }),
     ).rejects.toBeInstanceOf(UserNotFoundError)
   })
 
   it('should throw when user is soft deleted', async () => {
     const repo = new InMemoryUserRepository()
-    const createUser = new CreateUserUseCase(repo)
+    const createUser = new CreateUserUseCase(
+      repo,
+      new IssueAccountVerificationUseCase(
+        new InMemoryAccountVerificationRepository(),
+        new FakeTransactionalEmailService(),
+        10,
+        60,
+        5,
+      ),
+    )
     const useCase = new UpdateUserStatusUseCase(repo)
 
     const created = await createUser.execute({
@@ -57,7 +81,7 @@ describe('UpdateUserStatusUseCase', () => {
 
     await expect(
       useCase.execute(created.id, {
-        isActive: true,
+        accountStatus: 'ACTIVE',
       }),
     ).rejects.toBeInstanceOf(UserNotFoundError)
   })

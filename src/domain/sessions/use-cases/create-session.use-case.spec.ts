@@ -15,8 +15,18 @@ class FakeSessionTokenService implements SessionTokenService {
     }
   }
 
-  verifyRefreshToken(_token: string) {
-    throw new Error('not implemented')
+  verifyRefreshToken(token: string) {
+    const [, sub, jti] = token.split('-')
+
+    if (!sub || !jti) {
+      throw new Error('not implemented')
+    }
+
+    return {
+      sub,
+      jti,
+      type: 'refresh' as const,
+    }
   }
 }
 

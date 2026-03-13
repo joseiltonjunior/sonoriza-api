@@ -1,12 +1,16 @@
-import { UserRepository } from '../repositories/user-repository'
-
 import { hash } from 'bcryptjs'
-import { UserAlreadyExistsError } from '../errors/user-already-exists.error'
-import { ResponseCreateUserDTO } from '../dtos/response-create-user.dto'
+
 import { CreateUserDTO } from '../dtos/create-user-dto'
+import { ResponseCreateUserDTO } from '../dtos/response-create-user.dto'
+import { UserAlreadyExistsError } from '../errors/user-already-exists.error'
+import { UserRepository } from '../repositories/user-repository'
+import { IssueAccountVerificationUseCase } from './issue-account-verification.use-case'
 
 export class CreateUserUseCase {
-  constructor(private userRepo: UserRepository) {}
+  constructor(
+    private readonly userRepo: UserRepository,
+    private readonly issueAccountVerificationUseCase: IssueAccountVerificationUseCase,
+  ) {}
 
   async execute(input: CreateUserDTO): Promise<ResponseCreateUserDTO> {
     const { name, email, password } = input
@@ -24,11 +28,14 @@ export class CreateUserUseCase {
       password: passwordHash,
     })
 
+    await this.issueAccountVerificationUseCase.execute(created)
+
     return {
       id: created.id,
       name: created.name,
       email: created.email,
       role: created.role,
+      accountStatus: created.accountStatus,
       photoUrl: created.photoUrl,
       createdAt: created.createdAt,
     }

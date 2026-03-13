@@ -18,25 +18,34 @@ enum Role {
   ADMIN
 }
 
+enum AccountStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
-  id       String   @id @default(uuid())
-  name     String
-  email    String   @unique
-  password String
-  role     Role     @default(USER)
-  isActive Boolean  @default(true) @map("is_active")
-  photoUrl String?  @map("photo_url")
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  password      String
+  role          Role          @default(USER)
+  accountStatus AccountStatus @default(PENDING_VERIFICATION) @map("account_status")
+  photoUrl      String?       @map("photo_url")
 
-  musicLikes  MusicLike[]
-  artistLikes ArtistLike[]
-  musicViews  MusicView[]
-  sessions    Session[]
+  musicLikes           MusicLike[]
+  artistLikes          ArtistLike[]
+  musicViews           MusicView[]
+  sessions             Session[]
+  accountVerifications AccountVerification[]
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   @@index([role])
+  @@index([accountStatus])
   @@index([deletedAt])
   @@map("users")
 }
@@ -183,6 +192,27 @@ model Session {
   @@index([expiresAt])
   @@index([revokedAt])
   @@map("sessions")
+}
+
+model AccountVerification {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  codeHash          String    @map("code_hash")
+  expiresAt         DateTime  @map("expires_at")
+  resendAvailableAt DateTime  @map("resend_available_at")
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(5) @map("max_attempts")
+  verifiedAt        DateTime? @map("verified_at")
+  revokedAt         DateTime? @map("revoked_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("account_verifications")
 }
 
 model MusicView {

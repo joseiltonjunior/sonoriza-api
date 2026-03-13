@@ -17,7 +17,7 @@ export class GetUserProfileUseCase {
       name: user.name,
       email: user.email,
       role: user.role,
-      isActive: user.isActive,
+      accountStatus: user.accountStatus,
       photoUrl: user.photoUrl,
     }
   }

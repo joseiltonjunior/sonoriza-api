@@ -8,7 +8,9 @@ export class InMemorySessionRepository implements SessionRepository {
     this.items.push(session)
   }
 
-  async findByRefreshTokenJti(refreshTokenJti: string): Promise<Session | null> {
+  async findByRefreshTokenJti(
+    refreshTokenJti: string,
+  ): Promise<Session | null> {
     const session = this.items.find(
       (item) => item.refreshTokenJti === refreshTokenJti,
     )

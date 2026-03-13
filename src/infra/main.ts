@@ -12,7 +12,11 @@ async function bootstrap() {
   })
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://sonoriza-admin.vercel.app'],
+    origin: [
+      'http://localhost:3000',
+      'https://sonoriza-admin.vercel.app',
+      'https://admin.appsonoriza.com.br',
+    ],
     credentials: true,
   })
 
@@ -33,7 +37,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config)
 
-  SwaggerModule.setup('api', app, document, {
+  SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
     },

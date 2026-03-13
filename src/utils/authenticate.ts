@@ -8,7 +8,7 @@ export async function authenticateTestUser(
   app: INestApplication,
   prisma: PrismaService,
   role: Role = Role.USER,
-  isActive = true,
+  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED' = 'ACTIVE',
 ) {
   const email = `test-${role}-${Math.random()}@example.com`
   const password = '123456'
@@ -19,7 +19,7 @@ export async function authenticateTestUser(
       email,
       password: await hash(password, 8),
       role,
-      isActive,
+      accountStatus,
     },
   })
 

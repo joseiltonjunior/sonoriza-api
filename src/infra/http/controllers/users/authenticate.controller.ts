@@ -48,7 +48,7 @@ export class AuthenticateController {
     type: AuthenticateResponseSwaggerDTO,
   })
   @ApiUnauthorizedResponse({
-    description: 'Invalid credentials',
+    description: 'Invalid credentials or blocked user',
   })
   @ApiBadRequestResponse({
     description: 'Invalid request payload',
@@ -73,7 +73,7 @@ export class AuthenticateController {
         email: user.email,
         photoUrl: user.photoUrl,
         role: user.role,
-        isActive: user.isActive,
+        accountStatus: user.accountStatus,
       },
     }
   }

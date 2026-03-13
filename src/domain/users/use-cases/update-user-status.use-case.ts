@@ -16,13 +16,13 @@ export class UpdateUserStatusUseCase {
       throw new UserNotFoundError()
     }
 
-    user.setActiveStatus(data.isActive)
+    user.setAccountStatus(data.accountStatus)
 
     await this.userRepo.update(user)
 
     return {
       id: user.id,
-      isActive: user.isActive,
+      accountStatus: user.accountStatus,
       updatedAt: user.updatedAt,
     }
   }

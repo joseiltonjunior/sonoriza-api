@@ -40,7 +40,7 @@ describe('Soft delete profile (E2E)', () => {
       })
 
     expect(response.statusCode).toBe(204)
-    expect(userOnDatabase?.isActive).toBe(false)
+    expect(userOnDatabase?.accountStatus).toBe('SUSPENDED')
     expect(userOnDatabase?.deletedAt).toBeTruthy()
     expect(authAgain.statusCode).toBe(401)
   })

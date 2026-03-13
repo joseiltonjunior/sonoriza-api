@@ -59,7 +59,7 @@ describe('Fetch users (E2E)', () => {
       await prisma.user.update({
         where: { id: toDelete.id },
         data: {
-          isActive: false,
+          accountStatus: 'SUSPENDED',
           deletedAt: new Date(),
         },
       })

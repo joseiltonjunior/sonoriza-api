@@ -32,7 +32,7 @@ describe('Get profile (E2E)', () => {
         id: user.id,
         email: user.email,
         role: user.role,
-        isActive: user.isActive,
+        accountStatus: user.accountStatus,
       }),
     )
   })

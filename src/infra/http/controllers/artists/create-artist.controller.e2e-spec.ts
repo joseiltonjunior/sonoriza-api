@@ -78,6 +78,8 @@ describe('Create artist (E2E)', () => {
     expect(response.statusCode).toBe(201)
     expect(artistOnDatabase).toBeTruthy()
     expect(artistOnDatabase?.likesCount).toBe(0)
-    expect(artistOnDatabase?.musicalGenres.some((item) => item.genreId === genre.id)).toBe(true)
+    expect(
+      artistOnDatabase?.musicalGenres.some((item) => item.genreId === genre.id),
+    ).toBe(true)
   })
 })

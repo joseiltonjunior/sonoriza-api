@@ -4,7 +4,11 @@ export interface SessionTokenService {
     token: string
     expiresAt: Date
   }
-  verifyRefreshToken(token: string): { sub: string; jti: string; type: 'refresh' }
+  verifyRefreshToken(token: string): {
+    sub: string
+    jti: string
+    type: 'refresh'
+  }
 }
 
 export const SessionTokenServiceToken = Symbol('SessionTokenService')

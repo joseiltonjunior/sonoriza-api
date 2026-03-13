@@ -60,7 +60,11 @@ import { RolesGuard } from '@/infra/auth/roles.guard'
         artistsRepo: ArtistsRepository,
         genresRepo: GenresRepository,
       ) => new CreateMusicUseCase(musicRepo, artistsRepo, genresRepo),
-      inject: [MusicRepositoryToken, ArtistsRepositoryToken, GenresRepositoryToken],
+      inject: [
+        MusicRepositoryToken,
+        ArtistsRepositoryToken,
+        GenresRepositoryToken,
+      ],
     },
     {
       provide: FetchMusicsUseCase,

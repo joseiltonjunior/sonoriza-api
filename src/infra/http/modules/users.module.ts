@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 
 import { RolesGuard } from '@/infra/auth/roles.guard'
 import { JwtSessionTokenService } from '@/infra/auth/jwt-session-token.service'
@@ -28,6 +29,21 @@ import {
   SessionTokenServiceToken,
 } from '@/domain/sessions/use-cases/session-token.service'
 import { PrismaSessionRepository } from '@/infra/database/prisma/prisma-session.repository.service'
+import {
+  AccountVerificationRepository,
+  AccountVerificationRepositoryToken,
+} from '@/domain/users/repositories/account-verification-repository'
+import { PrismaAccountVerificationRepository } from '@/infra/database/prisma/prisma-account-verification.repository.service'
+import {
+  TransactionalEmailService,
+  TransactionalEmailServiceToken,
+} from '@/domain/users/use-cases/transactional-email.service'
+import { LambdaTransactionalEmailService } from '@/infra/integrations/lambda-transactional-email.service'
+import { NoopTransactionalEmailService } from '@/infra/integrations/noop-transactional-email.service'
+import { IssueAccountVerificationUseCase } from '@/domain/users/use-cases/issue-account-verification.use-case'
+import { VerifyAccountUseCase } from '@/domain/users/use-cases/verify-account.use-case'
+import { ResendAccountVerificationUseCase } from '@/domain/users/use-cases/resend-account-verification.use-case'
+import { Env } from '@/infra/env'
 
 import { AuthenticateController } from '../controllers/users/authenticate.controller'
 import { CreateAccountController } from '../controllers/users/create-account.controller'
@@ -35,13 +51,17 @@ import { FetchUsersController } from '../controllers/users/fetch-users.controlle
 import { GetProfileController } from '../controllers/users/get-profile.controller'
 import { LogoutSessionController } from '../controllers/users/logout-session.controller'
 import { RefreshSessionController } from '../controllers/users/refresh-session.controller'
+import { ResendAccountVerificationController } from '../controllers/users/resend-account-verification.controller'
 import { SoftDeleteProfileController } from '../controllers/users/soft-delete-profile.controller'
 import { UpdateProfileController } from '../controllers/users/update-profile.controller'
 import { UpdateUserStatusController } from '../controllers/users/update-user-status.controller'
+import { VerifyAccountController } from '../controllers/users/verify-account.controller'
 
 @Module({
   controllers: [
     CreateAccountController,
+    VerifyAccountController,
+    ResendAccountVerificationController,
     AuthenticateController,
     RefreshSessionController,
     LogoutSessionController,
@@ -55,6 +75,8 @@ import { UpdateUserStatusController } from '../controllers/users/update-user-sta
     PrismaService,
     RolesGuard,
     JwtSessionTokenService,
+    LambdaTransactionalEmailService,
+    NoopTransactionalEmailService,
     {
       provide: UserRepositoryToken,
       useClass: PrismaUserRepository,
@@ -64,13 +86,58 @@ import { UpdateUserStatusController } from '../controllers/users/update-user-sta
       useClass: PrismaSessionRepository,
     },
     {
+      provide: AccountVerificationRepositoryToken,
+      useClass: PrismaAccountVerificationRepository,
+    },
+    {
       provide: SessionTokenServiceToken,
       useExisting: JwtSessionTokenService,
     },
     {
+      provide: TransactionalEmailServiceToken,
+      useFactory: (
+        lambdaEmailService: LambdaTransactionalEmailService,
+        noopEmailService: NoopTransactionalEmailService,
+      ): TransactionalEmailService => {
+        return process.env.NODE_ENV === 'test'
+          ? noopEmailService
+          : lambdaEmailService
+      },
+      inject: [LambdaTransactionalEmailService, NoopTransactionalEmailService],
+    },
+    {
+      provide: IssueAccountVerificationUseCase,
+      useFactory: (
+        accountVerificationRepo: AccountVerificationRepository,
+        transactionalEmailService: TransactionalEmailService,
+        configService: ConfigService<Env, true>,
+      ) =>
+        new IssueAccountVerificationUseCase(
+          accountVerificationRepo,
+          transactionalEmailService,
+          configService.get('ACCOUNT_VERIFICATION_CODE_EXPIRES_IN_MINUTES', {
+            infer: true,
+          }),
+          configService.get('ACCOUNT_VERIFICATION_RESEND_COOLDOWN_SECONDS', {
+            infer: true,
+          }),
+          configService.get('ACCOUNT_VERIFICATION_MAX_ATTEMPTS', {
+            infer: true,
+          }),
+        ),
+      inject: [
+        AccountVerificationRepositoryToken,
+        TransactionalEmailServiceToken,
+        ConfigService,
+      ],
+    },
+    {
       provide: CreateUserUseCase,
-      useFactory: (repo: UserRepository) => new CreateUserUseCase(repo),
-      inject: [UserRepositoryToken],
+      useFactory: (
+        repo: UserRepository,
+        issueAccountVerificationUseCase: IssueAccountVerificationUseCase,
+      ) => new CreateUserUseCase(repo, issueAccountVerificationUseCase),
+      inject: [UserRepositoryToken, IssueAccountVerificationUseCase],
     },
     {
       provide: AuthenticateUserUseCase,
@@ -84,6 +151,42 @@ import { UpdateUserStatusController } from '../controllers/users/update-user-sta
         tokenService: SessionTokenService,
       ) => new CreateSessionUseCase(sessionRepo, tokenService),
       inject: [SessionRepositoryToken, SessionTokenServiceToken],
+    },
+    {
+      provide: VerifyAccountUseCase,
+      useFactory: (
+        userRepo: UserRepository,
+        accountVerificationRepo: AccountVerificationRepository,
+        createSessionUseCase: CreateSessionUseCase,
+      ) =>
+        new VerifyAccountUseCase(
+          userRepo,
+          accountVerificationRepo,
+          createSessionUseCase,
+        ),
+      inject: [
+        UserRepositoryToken,
+        AccountVerificationRepositoryToken,
+        CreateSessionUseCase,
+      ],
+    },
+    {
+      provide: ResendAccountVerificationUseCase,
+      useFactory: (
+        userRepo: UserRepository,
+        accountVerificationRepo: AccountVerificationRepository,
+        issueAccountVerificationUseCase: IssueAccountVerificationUseCase,
+      ) =>
+        new ResendAccountVerificationUseCase(
+          userRepo,
+          accountVerificationRepo,
+          issueAccountVerificationUseCase,
+        ),
+      inject: [
+        UserRepositoryToken,
+        AccountVerificationRepositoryToken,
+        IssueAccountVerificationUseCase,
+      ],
     },
     {
       provide: RefreshSessionUseCase,
@@ -136,6 +239,8 @@ import { UpdateUserStatusController } from '../controllers/users/update-user-sta
     CreateUserUseCase,
     AuthenticateUserUseCase,
     CreateSessionUseCase,
+    VerifyAccountUseCase,
+    ResendAccountVerificationUseCase,
     RefreshSessionUseCase,
     LogoutSessionUseCase,
     GetUserProfileUseCase,
@@ -146,6 +251,8 @@ import { UpdateUserStatusController } from '../controllers/users/update-user-sta
     UserRepositoryToken,
     SessionRepositoryToken,
     SessionTokenServiceToken,
+    AccountVerificationRepositoryToken,
+    TransactionalEmailServiceToken,
   ],
 })
 export class UsersModule {}
