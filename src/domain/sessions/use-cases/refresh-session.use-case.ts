@@ -1,11 +1,13 @@
+import { randomUUID } from 'node:crypto'
+
+import { UserRepository } from '@/domain/users/repositories/user-repository'
+
 import { RefreshSessionDTO } from '../dtos/refresh-session.dto'
 import { InvalidSessionError } from '../errors/invalid-session.error'
 import { Session } from '../entities/session'
 import { SessionRepository } from '../repositories/session-repository'
 import { hashRefreshToken } from './hash-refresh-token'
 import { SessionTokenService } from './session-token.service'
-import { randomUUID } from 'node:crypto'
-import { UserRepository } from '@/domain/users/repositories/user-repository'
 
 export class RefreshSessionUseCase {
   constructor(
@@ -23,7 +25,9 @@ export class RefreshSessionUseCase {
       throw new InvalidSessionError()
     }
 
-    const session = await this.sessionRepository.findByRefreshTokenJti(payload.jti)
+    const session = await this.sessionRepository.findByRefreshTokenJti(
+      payload.jti,
+    )
 
     if (!session) {
       throw new InvalidSessionError()
@@ -39,7 +43,7 @@ export class RefreshSessionUseCase {
 
     const user = await this.userRepository.findById(payload.sub)
 
-    if (!user || user.deletedAt || !user.isActive) {
+    if (!user || user.deletedAt || user.accountStatus !== 'ACTIVE') {
       throw new InvalidSessionError()
     }
 

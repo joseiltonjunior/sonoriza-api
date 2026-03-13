@@ -13,10 +13,13 @@ class AuthenticatedUserSwaggerDTO {
   @ApiProperty({ example: 'USER' })
   role!: 'USER' | 'ADMIN'
 
-  @ApiProperty({ example: true })
-  isActive!: boolean
+  @ApiProperty({ example: 'ACTIVE' })
+  accountStatus!: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
 
-  @ApiProperty({ example: 'https://cdn.example.com/profiles/john.jpg', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/profiles/john.jpg',
+    nullable: true,
+  })
   photoUrl!: string | null
 }
 

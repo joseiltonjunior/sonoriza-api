@@ -181,10 +181,7 @@ describe('Fetch musics (E2E)', () => {
     expect(
       response.body.data.map((music: { album: string | null }) => music.album),
     ).toEqual(
-      expect.arrayContaining([
-        `${prefix}-best-of`,
-        `${prefix}-best-hits`,
-      ]),
+      expect.arrayContaining([`${prefix}-best-of`, `${prefix}-best-hits`]),
     )
   })
 })

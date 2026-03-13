@@ -9,8 +9,9 @@ export class PrismaUserMapper {
       raw.email,
       raw.password,
       raw.role,
-      raw.isActive,
+      raw.accountStatus,
       raw.photoUrl,
+      raw.emailVerifiedAt,
       raw.createdAt,
       raw.updatedAt,
       raw.deletedAt,
@@ -24,8 +25,9 @@ export class PrismaUserMapper {
       email: entity.email,
       password: entity.password,
       role: entity.role,
-      isActive: entity.isActive,
+      accountStatus: entity.accountStatus,
       photoUrl: entity.photoUrl,
+      emailVerifiedAt: entity.emailVerifiedAt,
       deletedAt: entity.deletedAt,
     }
   }

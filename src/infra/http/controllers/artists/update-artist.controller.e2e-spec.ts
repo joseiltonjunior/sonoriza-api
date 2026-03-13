@@ -86,6 +86,10 @@ describe('Update artist (E2E)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(updatedOnDatabase?.name).toBe('Updated Artist')
-    expect(updatedOnDatabase?.musicalGenres.some((item) => item.genreId === genre.id)).toBe(true)
+    expect(
+      updatedOnDatabase?.musicalGenres.some(
+        (item) => item.genreId === genre.id,
+      ),
+    ).toBe(true)
   })
 })

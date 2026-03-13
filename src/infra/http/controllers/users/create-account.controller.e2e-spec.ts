@@ -33,9 +33,17 @@ describe('Create account (E2E)', () => {
       },
     })
 
+    const verificationOnDatabase = await prisma.accountVerification.findFirst({
+      where: {
+        userId: userOnDatabase?.id,
+      },
+    })
+
     expect(response.statusCode).toBe(201)
     expect(response.body.photoUrl).toBeNull()
+    expect(response.body.accountStatus).toBe('PENDING_VERIFICATION')
     expect(userOnDatabase).toBeTruthy()
-    expect(userOnDatabase?.isActive).toBe(true)
+    expect(userOnDatabase?.accountStatus).toBe('PENDING_VERIFICATION')
+    expect(verificationOnDatabase).toBeTruthy()
   })
 })

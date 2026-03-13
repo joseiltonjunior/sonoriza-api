@@ -17,18 +17,15 @@ import { FetchArtistsResponseSwaggerDTO } from '../../swagger/artists/fetch-arti
 import { ArtistPresenter } from '../../presenters/artist.presenter'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
-const optionalTrimmedString = z.preprocess(
-  (value) => {
-    if (typeof value !== 'string') {
-      return value
-    }
+const optionalTrimmedString = z.preprocess((value) => {
+  if (typeof value !== 'string') {
+    return value
+  }
 
-    const trimmed = value.trim()
+  const trimmed = value.trim()
 
-    return trimmed === '' ? undefined : trimmed
-  },
-  z.string().min(1).optional(),
-)
+  return trimmed === '' ? undefined : trimmed
+}, z.string().min(1).optional())
 
 const fetchArtistsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),

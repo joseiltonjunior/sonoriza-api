@@ -25,7 +25,7 @@ import { UpdateUserStatusResponseSwaggerDTO } from '../../swagger/users/update-u
 
 const updateUserStatusBodySchema = z
   .object({
-    isActive: z.boolean(),
+    accountStatus: z.enum(['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED']),
   })
   .strict()
 
@@ -42,7 +42,7 @@ export class UpdateUserStatusController {
 
   @Patch(':id/status')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Activate or desactivate a user (admin only)' })
+  @ApiOperation({ summary: 'Update user account status (admin only)' })
   @ApiParam({
     name: 'id',
     example: '67502595-593c-4ada-8f2c-b6cd6a743f61',
@@ -61,7 +61,7 @@ export class UpdateUserStatusController {
     @Body(bodyValidationPipe) body: UpdateUserStatusBody,
   ) {
     const dto: UpdateUserStatusDTO = {
-      isActive: body.isActive,
+      accountStatus: body.accountStatus,
     }
 
     return this.updateUserStatusUseCase.execute(id, dto)

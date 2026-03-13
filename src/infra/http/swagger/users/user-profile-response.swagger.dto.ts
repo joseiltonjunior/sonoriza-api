@@ -23,9 +23,9 @@ export class UserProfileResponseSwaggerDTO {
   role!: 'USER' | 'ADMIN'
 
   @ApiProperty({
-    example: true,
+    example: 'ACTIVE',
   })
-  isActive!: boolean
+  accountStatus!: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
 
   @ApiProperty({
     example: 'https://cdn.example.com/profiles/john.jpg',

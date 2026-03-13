@@ -18,6 +18,11 @@ export class CreateUserResponseSwaggerDTO {
   email!: string
 
   @ApiProperty({
+    example: 'PENDING_VERIFICATION',
+  })
+  accountStatus!: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
+
+  @ApiProperty({
     example: 'https://cdn.example.com/profiles/seu-paulo.jpg',
     nullable: true,
     required: false,

@@ -8,9 +8,10 @@ export class UpdateUserStatusResponseSwaggerDTO {
   id!: string
 
   @ApiProperty({
-    example: true,
+    example: 'SUSPENDED',
+    enum: ['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED'],
   })
-  isActive!: boolean
+  accountStatus!: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
 
   @ApiProperty({
     example: '2026-01-01T00:00:00.000Z',

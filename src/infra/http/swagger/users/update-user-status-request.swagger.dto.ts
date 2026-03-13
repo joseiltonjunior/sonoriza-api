@@ -2,7 +2,8 @@ import { ApiProperty } from '@nestjs/swagger'
 
 export class UpdateUserStatusRequestSwaggerDTO {
   @ApiProperty({
-    example: true,
+    example: 'SUSPENDED',
+    enum: ['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED'],
   })
-  isActive!: boolean
+  accountStatus!: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
 }

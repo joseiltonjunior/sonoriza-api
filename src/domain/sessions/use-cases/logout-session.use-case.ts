@@ -19,7 +19,9 @@ export class LogoutSessionUseCase {
       throw new InvalidSessionError()
     }
 
-    const session = await this.sessionRepository.findByRefreshTokenJti(payload.jti)
+    const session = await this.sessionRepository.findByRefreshTokenJti(
+      payload.jti,
+    )
 
     if (!session || session.revokedAt) {
       throw new InvalidSessionError()

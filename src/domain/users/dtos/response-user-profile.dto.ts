@@ -3,6 +3,6 @@ export type ResponseUserProfileDTO = {
   name: string
   email: string
   role: 'ADMIN' | 'USER'
-  isActive: boolean
+  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
   photoUrl: string | null
 }

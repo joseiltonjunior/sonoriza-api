@@ -1,3 +1,3 @@
 export type UpdateUserStatusDTO = {
-  isActive: boolean
+  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
 }
