@@ -1,4 +1,4 @@
-# Sonoriza API - Full Integration Reference
+ï»¿# Sonoriza API - Full Integration Reference
 
 ## Purpose of this document
 
@@ -10,13 +10,14 @@ It is intended to be copied into other project chats so every client stays align
 
 ## Online environment
 
-- Swagger: [https://sonoriza-api.onrender.com/api](https://sonoriza-api.onrender.com/api)
+- Swagger: [https://sonoriza-api.onrender.com/docs](https://sonoriza-api.onrender.com/docs)
 - API base URL: `https://sonoriza-api.onrender.com`
 
 ## Product context
 
 The current API is the backend for the Sonoriza platform and already supports:
 - user authentication and session lifecycle
+- account verification by e-mail with code confirmation
 - user administration
 - music catalog management
 - artist catalog management
@@ -25,7 +26,7 @@ The current API is the backend for the Sonoriza platform and already supports:
 - CloudFront URL signing through the backend
 - CloudWatch bucket metrics through the backend
 
-It is no longer just a simple CRUD API. It now centralizes authentication, session renewal, AWS integration, and core catalog operations.
+It is no longer just a simple CRUD API. It now centralizes authentication, session renewal, AWS integration, transactional e-mail onboarding, and core catalog operations.
 
 ## Current architecture
 
@@ -70,6 +71,10 @@ Main architectural characteristics:
 - `Role`
   - `USER`
   - `ADMIN`
+- `AccountStatus`
+  - `PENDING_VERIFICATION`
+  - `ACTIVE`
+  - `SUSPENDED`
 
 ### Main entities
 
@@ -82,8 +87,9 @@ Fields:
 - `email`
 - `password`
 - `role`
-- `isActive`
+- `accountStatus`
 - `photoUrl`
+- `emailVerifiedAt`
 - `createdAt`
 - `updatedAt`
 - `deletedAt`
@@ -93,9 +99,12 @@ Relations:
 - `artistLikes`
 - `musicViews`
 - `sessions`
+- `accountVerifications`
 
 Current rule:
-- user is created as `isActive = true`
+- user is created as `accountStatus = PENDING_VERIFICATION`
+- user becomes `ACTIVE` only after code verification
+- user can later be moved to `SUSPENDED` by admin
 
 #### Music
 Represents a music item in the catalog.
@@ -174,6 +183,28 @@ Purpose:
 - support refresh rotation
 - support logout with revocation
 
+#### AccountVerification
+Represents the current e-mail verification state for a pending account.
+
+Fields:
+- `id`
+- `userId`
+- `codeHash`
+- `expiresAt`
+- `resendAvailableAt`
+- `attempts`
+- `maxAttempts`
+- `verifiedAt`
+- `revokedAt`
+- `createdAt`
+- `updatedAt`
+
+Purpose:
+- store verification codes as hashes
+- enforce code expiration
+- enforce resend cooldown
+- track attempts and invalidate abused codes
+
 ### Join tables
 
 - `MusicArtist`
@@ -196,7 +227,7 @@ Fields:
 
 ## Authentication and authorization
 
-## Access model
+### Access model
 
 The API uses:
 - short-lived `access_token`
@@ -224,7 +255,7 @@ Characteristics:
 A user can authenticate only if:
 - user exists
 - password matches
-- `isActive = true`
+- `accountStatus = ACTIVE`
 - `deletedAt = null`
 
 Admin-only routes require:
@@ -259,10 +290,14 @@ Response:
     "email": "john@example.com",
     "photoUrl": null,
     "role": "USER",
-    "isActive": true
+    "accountStatus": "ACTIVE"
   }
 }
 ```
+
+Important:
+- pending accounts receive `403 Account pending verification`
+- suspended accounts receive `401 Unauthorized`
 
 ### Refresh session
 
@@ -327,8 +362,32 @@ Endpoint:
 
 Behavior:
 - API creates the account internally
-- `isActive` is not received from the client
-- new account is active by default
+- `accountStatus` is not received from the client
+- new account is created as `PENDING_VERIFICATION`
+- API generates and persists a verification code
+- API dispatches the transactional e-mail through Lambda
+
+### Verify account
+
+Endpoint:
+- `POST /accounts/verify`
+
+Behavior:
+- receives `email` and `code`
+- validates the latest pending verification
+- activates the account
+- returns `access_token`, `refresh_token`, and `user`
+
+### Resend verification code
+
+Endpoint:
+- `POST /accounts/resend-verification`
+
+Behavior:
+- receives `email`
+- enforces a backend cooldown of `60s`
+- revokes the previous pending code
+- issues and sends a new verification code
 
 ### Get authenticated profile
 
@@ -340,7 +399,7 @@ Response includes:
 - `name`
 - `email`
 - `role`
-- `isActive`
+- `accountStatus`
 - `photoUrl`
 
 Example:
@@ -351,7 +410,7 @@ Example:
   "name": "John Doe",
   "email": "john@example.com",
   "role": "USER",
-  "isActive": true,
+  "accountStatus": "ACTIVE",
   "photoUrl": null
 }
 ```
@@ -373,20 +432,21 @@ Endpoint:
 Behavior:
 - user is soft deleted
 - user should no longer authenticate after deletion
+- soft delete also moves the user to `SUSPENDED`
 
 ### Admin user endpoints
 
 #### Fetch paginated users
 - `GET /users?page=1`
 
-#### Update user active status
+#### Update user status
 - `PATCH /users/:id/status`
 
 Purpose:
-- activate or deactivate a specific user as admin
+- update the specific user `accountStatus` as admin
 
 Important:
-- admin can toggle status
+- admin can move status between `ACTIVE`, `PENDING_VERIFICATION`, and `SUSPENDED`
 - admin is not using `PATCH /me` to edit another user profile
 
 ## Music domain
@@ -489,7 +549,7 @@ Presenter response shape:
   "musicalGenres": [
     {
       "id": "genre-id",
-      "name": "Forró"
+      "name": "Forro"
     }
   ],
   "musics": [
@@ -713,12 +773,13 @@ Session routes were explicitly separated from Users to keep authentication/sessi
 
 ## What each client should use
 
-## Sonoriza Admin
+### Sonoriza Admin
 
 Should rely on the API for:
 - login
 - refresh token
 - logout
+- account verification administration when needed
 - user management
 - music CRUD
 - artist CRUD
@@ -729,9 +790,12 @@ Should rely on the API for:
 
 Admin should not use AWS directly anymore.
 
-## Sonoriza Mobile
+### Sonoriza Mobile
 
 Should rely on the API for:
+- account creation
+- account verification flow
+- resend verification flow
 - login
 - refresh token flow
 - logout
@@ -743,12 +807,14 @@ Should rely on the API for:
 - `GET /genres`
 
 Recommended mobile auth flow:
-1. login with `POST /sessions`
-2. store `access_token` and `refresh_token`
-3. call protected routes using `access_token`
-4. when expired, call `POST /sessions/refresh`
-5. replace stored tokens with the new pair
-6. if refresh fails, send user back to login
+1. create account with `POST /accounts`
+2. prompt for verification code
+3. verify account with `POST /accounts/verify`
+4. store `access_token` and `refresh_token`
+5. call protected routes using `access_token`
+6. when expired, call `POST /sessions/refresh`
+7. replace stored tokens with the new pair
+8. if refresh fails, send user back to login
 
 ## Current limitations and next natural steps
 
@@ -757,12 +823,14 @@ Known limitations at the current stage:
 - no FCM token lifecycle in the API yet
 - no cleanup job for expired/revoked sessions
 - upload endpoint is not designed for regular user uploads
+- user profile photo upload still needs a dedicated authenticated endpoint outside the admin upload flow
 - the domain is still centered on music/artist/genre and has not yet been remodeled into broader distribution/content architecture
 
 Most natural next steps:
 - deviceId support
 - FCM token registration/update flow
 - session cleanup routine
+- dedicated authenticated avatar upload
 - future content/distribution remodel
 
 ## Executive summary
@@ -771,6 +839,7 @@ The Sonoriza API has evolved from a simple music backend into a platform-oriente
 - structured authentication
 - persisted session lifecycle
 - refresh token support
+- account verification by e-mail
 - admin governance
 - richer mobile search/filter capabilities
 - centralized AWS operations
