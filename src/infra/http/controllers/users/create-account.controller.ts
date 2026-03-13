@@ -35,6 +35,8 @@ export class CreateAccountController {
   @Post()
   @ApiOperation({
     summary: 'Create a new user account',
+    description:
+      'Creates a pending account and sends a verification code by email.',
   })
   @ApiBody({
     type: CreateUserRequestSwaggerDTO,
@@ -63,6 +65,7 @@ export class CreateAccountController {
       id: created.id,
       name: created.name,
       email: created.email,
+      accountStatus: created.accountStatus,
       photoUrl: created.photoUrl,
     }
   }

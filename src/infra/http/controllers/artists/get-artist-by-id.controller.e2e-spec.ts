@@ -22,7 +22,9 @@ describe('Get artist by id (E2E)', () => {
   })
 
   test('[GET]/artists/:id should require auth token', async () => {
-    const response = await request(app.getHttpServer()).get('/artists/artist-id')
+    const response = await request(app.getHttpServer()).get(
+      '/artists/artist-id',
+    )
 
     expect(response.statusCode).toBe(401)
   })

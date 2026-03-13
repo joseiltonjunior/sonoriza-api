@@ -1,8 +1,10 @@
-import { UserRepository } from '../repositories/user-repository'
-import { AuthenticateDTO } from '../dtos/authenticate.dto'
 import { compare } from 'bcryptjs'
+
+import { AuthenticateDTO } from '../dtos/authenticate.dto'
+import { AccountPendingVerificationError } from '../errors/account-pending-verification.error'
 import { InvalidCredentialsError } from '../errors/invalid-credentials.error'
 import { UnauthorizedError } from '../errors/unauthorized.error'
+import { UserRepository } from '../repositories/user-repository'
 
 export class AuthenticateUserUseCase {
   constructor(private userRepo: UserRepository) {}
@@ -12,7 +14,7 @@ export class AuthenticateUserUseCase {
     role: 'ADMIN' | 'USER'
     email: string
     name: string
-    isActive: boolean
+    accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
     photoUrl: string | null
   }> {
     const { email, password } = input
@@ -20,12 +22,20 @@ export class AuthenticateUserUseCase {
     const user = await this.userRepo.findByEmail(email)
     if (!user) throw new InvalidCredentialsError()
 
-    if (!user.isActive || user.deletedAt) {
+    const isValid = await compare(password, user.password)
+    if (!isValid) throw new InvalidCredentialsError()
+
+    if (user.deletedAt) {
       throw new UnauthorizedError()
     }
 
-    const isValid = await compare(password, user.password)
-    if (!isValid) throw new InvalidCredentialsError()
+    if (user.accountStatus === 'PENDING_VERIFICATION') {
+      throw new AccountPendingVerificationError()
+    }
+
+    if (user.accountStatus !== 'ACTIVE') {
+      throw new UnauthorizedError()
+    }
 
     return {
       id: user.id,
@@ -33,7 +43,7 @@ export class AuthenticateUserUseCase {
       email: user.email,
       photoUrl: user.photoUrl,
       role: user.role,
-      isActive: user.isActive,
+      accountStatus: user.accountStatus,
     }
   }
 }

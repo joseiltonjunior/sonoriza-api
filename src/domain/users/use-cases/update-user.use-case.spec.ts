@@ -1,13 +1,28 @@
-import { UpdateUserUseCase } from './update-user.use-case'
 import { UserAlreadyExistsError } from '../errors/user-already-exists.error'
 import { UserNotFoundError } from '../errors/user-not-found.error'
+import { InMemoryAccountVerificationRepository } from '../repositories/in-memory-account-verification.repository'
 import { InMemoryUserRepository } from '../repositories/in-memory-user.repository'
 import { CreateUserUseCase } from './create-user.use-case'
+import { IssueAccountVerificationUseCase } from './issue-account-verification.use-case'
+import { UpdateUserUseCase } from './update-user.use-case'
+
+class FakeTransactionalEmailService {
+  async sendAccountVerification() {}
+}
 
 describe('UpdateUserUseCase', () => {
   it('should update user profile', async () => {
     const repo = new InMemoryUserRepository()
-    const createUser = new CreateUserUseCase(repo)
+    const createUser = new CreateUserUseCase(
+      repo,
+      new IssueAccountVerificationUseCase(
+        new InMemoryAccountVerificationRepository(),
+        new FakeTransactionalEmailService(),
+        10,
+        60,
+        5,
+      ),
+    )
     const useCase = new UpdateUserUseCase(repo)
 
     const created = await createUser.execute({
@@ -45,7 +60,16 @@ describe('UpdateUserUseCase', () => {
 
   it('should throw when email already exists for another user', async () => {
     const repo = new InMemoryUserRepository()
-    const createUser = new CreateUserUseCase(repo)
+    const createUser = new CreateUserUseCase(
+      repo,
+      new IssueAccountVerificationUseCase(
+        new InMemoryAccountVerificationRepository(),
+        new FakeTransactionalEmailService(),
+        10,
+        60,
+        5,
+      ),
+    )
     const useCase = new UpdateUserUseCase(repo)
 
     const first = await createUser.execute({

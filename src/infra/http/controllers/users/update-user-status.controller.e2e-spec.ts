@@ -24,7 +24,7 @@ describe('Update user status (E2E)', () => {
   test('[PATCH]/users/:id/status should require auth token', async () => {
     const response = await request(app.getHttpServer())
       .patch('/users/some-id/status')
-      .send({ isActive: false })
+      .send({ accountStatus: 'SUSPENDED' })
 
     expect(response.statusCode).toBe(401)
   })
@@ -44,7 +44,7 @@ describe('Update user status (E2E)', () => {
     const response = await request(app.getHttpServer())
       .patch(`/users/${target.id}/status`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ isActive: false })
+      .send({ accountStatus: 'SUSPENDED' })
 
     expect(response.statusCode).toBe(403)
   })
@@ -64,19 +64,19 @@ describe('Update user status (E2E)', () => {
     const response = await request(app.getHttpServer())
       .patch(`/users/${target.id}/status`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ isActive: false })
+      .send({ accountStatus: 'SUSPENDED' })
 
     expect(response.statusCode).toBe(200)
     expect(response.body).toEqual(
       expect.objectContaining({
         id: target.id,
-        isActive: false,
+        accountStatus: 'SUSPENDED',
       }),
     )
 
     const updated = await prisma.user.findUnique({ where: { id: target.id } })
 
-    expect(updated?.isActive).toBe(false)
+    expect(updated?.accountStatus).toBe('SUSPENDED')
     expect(updated?.deletedAt).toBeNull()
   })
 })

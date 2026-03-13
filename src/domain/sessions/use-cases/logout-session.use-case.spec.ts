@@ -8,11 +8,11 @@ import { hashRefreshToken } from './hash-refresh-token'
 import { InvalidSessionError } from '../errors/invalid-session.error'
 
 class FakeSessionTokenService implements SessionTokenService {
-  generateAccessToken(_payload: { sub: string; role: 'ADMIN' | 'USER' }) {
+  generateAccessToken() {
     return 'access-token'
   }
 
-  generateRefreshToken(_payload: { sub: string; jti: string }) {
+  generateRefreshToken() {
     return {
       token: 'refresh-token',
       expiresAt: new Date(),

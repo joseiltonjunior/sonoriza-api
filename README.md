@@ -9,6 +9,7 @@ Sonoriza backend built with NestJS, Prisma, and PostgreSQL.
 The API currently covers:
 - JWT authentication with RS256
 - access token + refresh token with session rotation
+- account verification by email with code confirmation
 - user lifecycle (`/accounts`, `/me`, `/users`)
 - session endpoints (`/sessions`, `/sessions/refresh`, `/sessions/logout`)
 - user status administration
@@ -16,7 +17,7 @@ The API currently covers:
 - file upload to S3 with Lambda-based signing
 - standalone CloudFront URL signing through the API
 - S3 bucket metrics through CloudWatch
-- Swagger at `/api`
+- Swagger at `/docs`
 - request validation with Zod
 - unit and e2e tests with Vitest
 
@@ -70,12 +71,16 @@ JWT_PRIVATE_KEY="<BASE64_PRIVATE_KEY_PEM>"
 JWT_PUBLIC_KEY="<BASE64_PUBLIC_KEY_PEM>"
 JWT_ACCESS_TOKEN_EXPIRES_IN="3h"
 JWT_REFRESH_TOKEN_EXPIRES_IN="30d"
+ACCOUNT_VERIFICATION_CODE_EXPIRES_IN_MINUTES=10
+ACCOUNT_VERIFICATION_RESEND_COOLDOWN_SECONDS=60
+ACCOUNT_VERIFICATION_MAX_ATTEMPTS=5
 AWS_REGION="sa-east-1"
 AWS_ACCESS_KEY_ID="replace-me"
 AWS_SECRET_ACCESS_KEY="replace-me"
 AWS_S3_BUCKET="sonoriza-media"
 CLOUDFRONT_DOMAIN="https://cdn.example.com/"
 UPLOAD_LAMBDA_SIGN_FUNCTION_NAME="cloudfront-presign-url"
+TRANSACTIONAL_EMAIL_LAMBDA_FUNCTION_NAME="send-transactional-email"
 UPLOAD_MAX_FILE_SIZE_MB=15
 ```
 
@@ -99,7 +104,7 @@ pnpm start:dev
 ```
 
 API: `http://localhost:3333`  
-Swagger: `http://localhost:3333/api`
+Swagger: `http://localhost:3333/docs`
 
 ## Scripts
 
@@ -120,8 +125,10 @@ Swagger: `http://localhost:3333/api`
 - the access token includes `sub` and `role` (`USER` | `ADMIN`)
 - protected routes require a valid access token
 - admin routes require `role = ADMIN`
-- login requires `isActive = true` and `deletedAt = null`
-- new accounts are created as active by default
+- account access is controlled by `accountStatus`
+- new accounts are created as `PENDING_VERIFICATION`
+- login is allowed only for `accountStatus = ACTIVE` and `deletedAt = null`
+- account verification codes are emailed through Lambda + SES
 - refresh tokens are persisted in `sessions`
 - refresh tokens use `jti`, hashed storage, and mandatory rotation
 
@@ -135,11 +142,18 @@ Base paths:
 - `/users`
 
 - `POST /accounts` - create account
-- `GET /me` - return authenticated profile, including `isActive`
+- `POST /accounts/verify` - verify account code and immediately authenticate the user
+- `POST /accounts/resend-verification` - resend verification code with API-side cooldown
+- `GET /me` - return authenticated profile
 - `PATCH /me` - update own profile
 - `DELETE /me` - soft delete own user
 - `GET /users?page=1` - paginated user list (ADMIN)
-- `PATCH /users/:id/status` - activate or deactivate a user (ADMIN)
+- `PATCH /users/:id/status` - update `accountStatus` for a user (ADMIN)
+
+User account statuses:
+- `PENDING_VERIFICATION`
+- `ACTIVE`
+- `SUSPENDED`
 
 ### Sessions
 
@@ -148,6 +162,10 @@ Base path: `/sessions`
 - `POST /sessions` - authenticate and return `access_token`, `refresh_token`, and `user`
 - `POST /sessions/refresh` - rotate the session and return a new `access_token` and `refresh_token`
 - `POST /sessions/logout` - revoke the current session using `refresh_token`
+
+Notes:
+- `POST /sessions` returns `403` when the account is still pending verification.
+- `POST /accounts/verify` activates the account and opens the first session in the same request.
 
 ### Musics
 
@@ -253,10 +271,11 @@ prisma/
 
 - Soft delete is applied to `users`, `musics`, `genres`, and `artists`.
 - Controllers validate requests with Zod.
-- Swagger is available at `/api`.
+- Swagger is available at `/docs`.
 - File signing uses a Lambda function by name, not direct frontend AWS access.
 - The CMS and mobile app can consume uploads, signing, and metrics without shipping AWS credentials.
 - Refresh token does not replace the access token on protected routes; it is only used to renew the session.
+- `users.isActive` was removed; user access now depends on `accountStatus`.
 
 ## Credits
 

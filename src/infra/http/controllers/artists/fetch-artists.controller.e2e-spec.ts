@@ -125,10 +125,7 @@ describe('Fetch artists (E2E)', () => {
     expect(
       response.body.data.map((artist: { name: string }) => artist.name),
     ).toEqual(
-      expect.arrayContaining([
-        `${prefix}-natanzinho`,
-        `${prefix}-nathan`,
-      ]),
+      expect.arrayContaining([`${prefix}-natanzinho`, `${prefix}-nathan`]),
     )
   })
 
@@ -188,10 +185,7 @@ describe('Fetch artists (E2E)', () => {
     expect(
       response.body.data.map((artist: { name: string }) => artist.name),
     ).toEqual(
-      expect.arrayContaining([
-        `${prefix}-artist-a`,
-        `${prefix}-artist-ab`,
-      ]),
+      expect.arrayContaining([`${prefix}-artist-a`, `${prefix}-artist-ab`]),
     )
   })
 })

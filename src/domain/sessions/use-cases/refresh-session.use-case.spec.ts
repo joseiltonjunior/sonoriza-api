@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto'
 
+import { User } from '@/domain/users/entities/user'
+import { InMemoryUserRepository } from '@/domain/users/repositories/in-memory-user.repository'
+
+import { Session } from '../entities/session'
+import { InvalidSessionError } from '../errors/invalid-session.error'
 import { InMemorySessionRepository } from '../repositories/in-memory-session.repository'
+import { hashRefreshToken } from './hash-refresh-token'
 import { RefreshSessionUseCase } from './refresh-session.use-case'
 import { SessionTokenService } from './session-token.service'
-import { InMemoryUserRepository } from '@/domain/users/repositories/in-memory-user.repository'
-import { CreateUserUseCase } from '@/domain/users/use-cases/create-user.use-case'
-import { Session } from '../entities/session'
-import { hashRefreshToken } from './hash-refresh-token'
-import { InvalidSessionError } from '../errors/invalid-session.error'
 
 class FakeSessionTokenService implements SessionTokenService {
   generateAccessToken(payload: { sub: string; role: 'ADMIN' | 'USER' }) {
@@ -40,15 +41,22 @@ describe('RefreshSessionUseCase', () => {
   it('should rotate the refresh token and issue a new access token', async () => {
     const sessionRepo = new InMemorySessionRepository()
     const userRepo = new InMemoryUserRepository()
-    const createUser = new CreateUserUseCase(userRepo)
     const tokenService = new FakeSessionTokenService()
-    const useCase = new RefreshSessionUseCase(sessionRepo, userRepo, tokenService)
+    const useCase = new RefreshSessionUseCase(
+      sessionRepo,
+      userRepo,
+      tokenService,
+    )
 
-    const user = await createUser.execute({
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: '123456',
-    })
+    const user = new User(
+      randomUUID(),
+      'John Doe',
+      'john@example.com',
+      'hashed-password',
+      'USER',
+      'ACTIVE',
+    )
+    userRepo.items.push(user)
 
     const initialJti = randomUUID()
     const initialRefreshToken = `refresh:${user.id}:${initialJti}`
@@ -77,7 +85,11 @@ describe('RefreshSessionUseCase', () => {
     const sessionRepo = new InMemorySessionRepository()
     const userRepo = new InMemoryUserRepository()
     const tokenService = new FakeSessionTokenService()
-    const useCase = new RefreshSessionUseCase(sessionRepo, userRepo, tokenService)
+    const useCase = new RefreshSessionUseCase(
+      sessionRepo,
+      userRepo,
+      tokenService,
+    )
 
     await expect(
       useCase.execute({

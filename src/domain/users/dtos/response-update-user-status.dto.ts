@@ -1,5 +1,5 @@
 export type ResponseUpdateUserStatusDTO = {
   id: string
-  isActive: boolean
+  accountStatus: 'ACTIVE' | 'PENDING_VERIFICATION' | 'SUSPENDED'
   updatedAt: Date
 }
