@@ -1,5 +1,5 @@
-import { FetchStorageMetricsResponseDTO } from '../dtos/fetch-storage-metrics-response.dto'
-import { MetricsService } from './metrics.service'
+﻿import { FetchStorageMetricsResponseDTO } from '../dtos/fetch-storage-metrics-response.dto'
+import { MetricsService } from '../ports/metrics.service'
 
 export class FetchStorageMetricsUseCase {
   constructor(private readonly metricsService: MetricsService) {}

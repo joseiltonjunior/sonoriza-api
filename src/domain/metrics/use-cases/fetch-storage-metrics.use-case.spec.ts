@@ -1,5 +1,5 @@
-import { FetchStorageMetricsUseCase } from './fetch-storage-metrics.use-case'
-import { MetricsService } from './metrics.service'
+﻿import { FetchStorageMetricsUseCase } from './fetch-storage-metrics.use-case'
+import { MetricsService } from '../ports/metrics.service'
 
 class FakeMetricsService implements MetricsService {
   async fetchStorageMetrics() {

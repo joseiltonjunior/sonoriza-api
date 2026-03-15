@@ -1,11 +1,11 @@
-import { randomUUID } from 'node:crypto'
+﻿import { randomUUID } from 'node:crypto'
 
 import { User } from '../entities/user'
 import { AccountVerification } from '../entities/account-verification'
 import { AccountVerificationRepository } from '../repositories/account-verification-repository'
 import { generateVerificationCode } from './generate-verification-code'
 import { hashVerificationCode } from './hash-verification-code'
-import { TransactionalEmailService } from './transactional-email.service'
+import { TransactionalEmailService } from '../ports/transactional-email.service'
 
 export class IssueAccountVerificationUseCase {
   constructor(

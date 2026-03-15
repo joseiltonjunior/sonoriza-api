@@ -1,4 +1,4 @@
-import { FileSignerService } from './file-signer.service'
+﻿import { FileSignerService } from '../ports/file-signer.service'
 import { SignFileUrlUseCase } from './sign-file-url.use-case'
 
 class FakeFileSignerService implements FileSignerService {
@@ -21,3 +21,4 @@ describe('SignFileUrlUseCase', () => {
     })
   })
 })
+

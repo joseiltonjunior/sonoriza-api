@@ -1,10 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+﻿import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 
 import { Env } from '@/infra/env'
-import { StorageService } from '@/domain/uploads/use-cases/storage.service'
+import { StorageService } from '@/domain/uploads/ports/storage.service'
 
 @Injectable()
 export class S3StorageService implements StorageService {

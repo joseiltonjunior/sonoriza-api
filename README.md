@@ -146,9 +146,19 @@ Base paths:
 - `POST /accounts/resend-verification` - resend verification code with API-side cooldown
 - `GET /me` - return authenticated profile
 - `PATCH /me` - update own profile
+- `POST /me/photo` - upload authenticated user profile photo
 - `DELETE /me` - soft delete own user
 - `GET /users?page=1` - paginated user list (ADMIN)
 - `PATCH /users/:id/status` - update `accountStatus` for a user (ADMIN)
+
+`POST /me/photo` behavior:
+- accepts `multipart/form-data` with a single `file`
+- accepts `image/jpeg`, `image/png`, and `image/webp`
+- converts the image to `webp`
+- resizes to fit within `512x512` while preserving aspect ratio
+- stores the object at `users/<user-id>-<timestamp>.webp`
+- creates a versioned file path to avoid stale CDN/client cache after avatar updates
+- updates and returns the authenticated user profile with `photoUrl`
 
 User account statuses:
 - `PENDING_VERIFICATION`
@@ -211,6 +221,10 @@ Base path: `/uploads`
 
 - `POST /uploads` - multipart upload to S3 with Lambda-based signing (ADMIN)
 - `POST /uploads/sign` - receive a CloudFront URL and return `signedUrl` (ADMIN)
+
+Notes:
+- `/uploads` remains an administrative upload flow for catalog media.
+- Regular authenticated user avatar upload uses `POST /me/photo`, not `/uploads`.
 
 `POST /uploads` payload:
 - `files` - file array

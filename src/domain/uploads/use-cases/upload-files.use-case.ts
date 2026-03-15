@@ -1,10 +1,10 @@
-import { UploadFilesDTO } from '../dtos/upload-files.dto'
+﻿import { UploadFilesDTO } from '../dtos/upload-files.dto'
 import { UploadFilesResponseDTO } from '../dtos/upload-files-response.dto'
 import { InvalidUploadRequestError } from '../errors/invalid-upload-request.error'
 import { UnsupportedUploadFileError } from '../errors/unsupported-upload-file.error'
 import { UploadFileTooLargeError } from '../errors/upload-file-too-large.error'
-import { FileSignerService } from './file-signer.service'
-import { StorageService } from './storage.service'
+import { FileSignerService } from '../ports/file-signer.service'
+import { StorageService } from '../ports/storage.service'
 
 const allowedFolders = ['artists', 'musics', 'users', 'playlists'] as const
 
@@ -123,3 +123,4 @@ export class UploadFilesUseCase {
       .toLowerCase()
   }
 }
+

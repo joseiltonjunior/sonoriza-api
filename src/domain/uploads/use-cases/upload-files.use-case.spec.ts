@@ -1,6 +1,6 @@
-import { UploadFilesUseCase } from './upload-files.use-case'
-import { FileSignerService } from './file-signer.service'
-import { StorageService } from './storage.service'
+﻿import { UploadFilesUseCase } from './upload-files.use-case'
+import { FileSignerService } from '../ports/file-signer.service'
+import { StorageService } from '../ports/storage.service'
 import { InvalidUploadRequestError } from '../errors/invalid-upload-request.error'
 import { UnsupportedUploadFileError } from '../errors/unsupported-upload-file.error'
 import { UploadFileTooLargeError } from '../errors/upload-file-too-large.error'
@@ -124,3 +124,4 @@ describe('UploadFilesUseCase', () => {
     ).rejects.toBeInstanceOf(UploadFileTooLargeError)
   })
 })
+

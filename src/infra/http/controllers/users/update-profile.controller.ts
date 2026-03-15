@@ -24,7 +24,6 @@ import { UserPayload } from '@/infra/auth/jwt.strategy'
 const updateProfileBodySchema = z.object({
   name: z.string().optional(),
   email: z.email().optional(),
-  photoUrl: z.url().nullable().optional(),
 })
 
 const bodyValidationPipe = new ZodValidationPipe(updateProfileBodySchema)
@@ -60,7 +59,6 @@ export class UpdateProfileController {
     const dto: UpdateUserDTO = {
       name: body.name,
       email: body.email,
-      photoUrl: body.photoUrl,
     }
 
     const updated = await this.updateUserUseCase.execute(user.sub, dto)

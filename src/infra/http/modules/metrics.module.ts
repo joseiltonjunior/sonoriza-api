@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common'
+﻿import { Module } from '@nestjs/common'
 
 import { FetchStorageMetricsUseCase } from '@/domain/metrics/use-cases/fetch-storage-metrics.use-case'
 import {
   MetricsService,
   MetricsServiceToken,
-} from '@/domain/metrics/use-cases/metrics.service'
+} from '@/domain/metrics/ports/metrics.service'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 import { CloudWatchMetricsService } from '@/infra/integrations/cloudwatch-metrics.service'
 
@@ -27,3 +27,4 @@ import { FetchStorageMetricsController } from '../controllers/metrics/fetch-stor
   ],
 })
 export class MetricsModule {}
+

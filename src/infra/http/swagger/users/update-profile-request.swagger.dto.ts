@@ -6,11 +6,4 @@ export class UpdateProfileRequestSwaggerDTO {
 
   @ApiProperty({ example: 'john.updated@example.com', required: false })
   email?: string
-
-  @ApiProperty({
-    example: 'https://cdn.example.com/profiles/john.jpg',
-    required: false,
-    nullable: true,
-  })
-  photoUrl?: string | null
 }

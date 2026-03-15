@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common'
+﻿import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 import {
   FileSignerService,
   FileSignerServiceToken,
-} from '@/domain/uploads/use-cases/file-signer.service'
+} from '@/domain/uploads/ports/file-signer.service'
 import { SignFileUrlUseCase } from '@/domain/uploads/use-cases/sign-file-url.use-case'
-import { StorageServiceToken } from '@/domain/uploads/use-cases/storage.service'
+import { StorageServiceToken } from '@/domain/uploads/ports/storage.service'
 import { UploadFilesUseCase } from '@/domain/uploads/use-cases/upload-files.use-case'
 import { RolesGuard } from '@/infra/auth/roles.guard'
 import { Env } from '@/infra/env'
@@ -50,3 +50,4 @@ import { S3StorageService } from '@/infra/storage/s3-storage.service'
   ],
 })
 export class UploadsModule {}
+

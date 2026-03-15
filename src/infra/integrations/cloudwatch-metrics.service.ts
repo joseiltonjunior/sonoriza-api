@@ -1,4 +1,4 @@
-import {
+﻿import {
   GetMetricStatisticsCommand,
   CloudWatchClient,
 } from '@aws-sdk/client-cloudwatch'
@@ -6,7 +6,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 import { BucketMetricDTO } from '@/domain/metrics/dtos/fetch-storage-metrics-response.dto'
-import { MetricsService } from '@/domain/metrics/use-cases/metrics.service'
+import { MetricsService } from '@/domain/metrics/ports/metrics.service'
 import { Env } from '@/infra/env'
 
 @Injectable()
@@ -97,3 +97,4 @@ export class CloudWatchMetricsService implements MetricsService {
     }
   }
 }
+

@@ -1,8 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+﻿import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 
-import { TransactionalEmailService } from '@/domain/users/use-cases/transactional-email.service'
+import { TransactionalEmailService } from '@/domain/users/ports/transactional-email.service'
 import { Env } from '@/infra/env'
 
 @Injectable()
@@ -66,3 +66,4 @@ export class LambdaTransactionalEmailService implements TransactionalEmailServic
     }
   }
 }
+

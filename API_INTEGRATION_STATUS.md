@@ -423,6 +423,33 @@ Endpoint:
 Purpose:
 - update authenticated user profile
 - does not serve as admin edit endpoint for other users
+- this route does not upload or replace the profile image directly
+
+### Upload authenticated profile photo
+
+Endpoint:
+- `POST /me/photo`
+
+Purpose:
+- upload and replace the authenticated user's profile photo
+- keep user avatar upload separate from the admin catalog upload flow
+
+Payload:
+- `multipart/form-data`
+- field:
+  - `file`
+
+Rules:
+- requires valid authenticated user token
+- accepts `image/jpeg`, `image/png`, and `image/webp`
+- converts the uploaded image to `webp`
+- resizes to fit within `512x512` while preserving aspect ratio
+- stores the file at `users/<user-id>-<timestamp>.webp`
+- uses a versioned path to avoid stale cache after profile photo updates
+- updates `photoUrl` in the user profile
+
+Response:
+- returns the updated authenticated user object
 
 ### Soft delete own profile
 
@@ -708,10 +735,9 @@ Response:
 
 ### Important note for mobile
 
-The current upload endpoint is administrative.
-It does not support regular authenticated user uploads.
-
-If mobile needs avatar upload or user-generated upload later, this should be introduced as a separate endpoint and permission model.
+The `/uploads` endpoint remains administrative.
+Regular authenticated user avatar upload is handled by `POST /me/photo`.
+This keeps catalog media upload and account media upload under different permission models.
 
 ## Metrics domain
 
@@ -800,6 +826,7 @@ Should rely on the API for:
 - refresh token flow
 - logout
 - `GET /me`
+- `POST /me/photo`
 - `GET /musics`
 - `GET /musics/:id`
 - `GET /artists`
@@ -822,15 +849,14 @@ Known limitations at the current stage:
 - no device lifecycle yet
 - no FCM token lifecycle in the API yet
 - no cleanup job for expired/revoked sessions
-- upload endpoint is not designed for regular user uploads
-- user profile photo upload still needs a dedicated authenticated endpoint outside the admin upload flow
+- no generic user-generated upload flow beyond authenticated profile photo upload
 - the domain is still centered on music/artist/genre and has not yet been remodeled into broader distribution/content architecture
 
 Most natural next steps:
 - deviceId support
 - FCM token registration/update flow
 - session cleanup routine
-- dedicated authenticated avatar upload
+- tighter verification abuse controls at account level
 - future content/distribution remodel
 
 ## Executive summary

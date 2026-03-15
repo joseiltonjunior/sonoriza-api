@@ -1,8 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+﻿import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
 
-import { FileSignerService } from '@/domain/uploads/use-cases/file-signer.service'
+import { FileSignerService } from '@/domain/uploads/ports/file-signer.service'
 import { Env } from '@/infra/env'
 
 @Injectable()
@@ -54,3 +54,4 @@ export class LambdaFileSignerService implements FileSignerService {
     }
   }
 }
+

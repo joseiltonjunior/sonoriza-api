@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+﻿import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 import { RolesGuard } from '@/infra/auth/roles.guard'
@@ -37,13 +37,26 @@ import { PrismaAccountVerificationRepository } from '@/infra/database/prisma/pri
 import {
   TransactionalEmailService,
   TransactionalEmailServiceToken,
-} from '@/domain/users/use-cases/transactional-email.service'
+} from '@/domain/users/ports/transactional-email.service'
 import { LambdaTransactionalEmailService } from '@/infra/integrations/lambda-transactional-email.service'
 import { NoopTransactionalEmailService } from '@/infra/integrations/noop-transactional-email.service'
 import { IssueAccountVerificationUseCase } from '@/domain/users/use-cases/issue-account-verification.use-case'
 import { VerifyAccountUseCase } from '@/domain/users/use-cases/verify-account.use-case'
 import { ResendAccountVerificationUseCase } from '@/domain/users/use-cases/resend-account-verification.use-case'
 import { Env } from '@/infra/env'
+import {
+  FileSignerService,
+  FileSignerServiceToken,
+} from '@/domain/uploads/ports/file-signer.service'
+import {
+  StorageService,
+  StorageServiceToken,
+} from '@/domain/uploads/ports/storage.service'
+import { UploadUserProfilePhotoUseCase } from '@/domain/users/use-cases/upload-user-profile-photo.use-case'
+import {
+  ProfileImageProcessorService,
+  ProfileImageProcessorServiceToken,
+} from '@/domain/users/ports/profile-image-processor.service'
 
 import { AuthenticateController } from '../controllers/users/authenticate.controller'
 import { CreateAccountController } from '../controllers/users/create-account.controller'
@@ -53,9 +66,16 @@ import { LogoutSessionController } from '../controllers/users/logout-session.con
 import { RefreshSessionController } from '../controllers/users/refresh-session.controller'
 import { ResendAccountVerificationController } from '../controllers/users/resend-account-verification.controller'
 import { SoftDeleteProfileController } from '../controllers/users/soft-delete-profile.controller'
+import { UploadUserProfilePhotoController } from '../controllers/users/upload-user-profile-photo.controller'
 import { UpdateProfileController } from '../controllers/users/update-profile.controller'
 import { UpdateUserStatusController } from '../controllers/users/update-user-status.controller'
 import { VerifyAccountController } from '../controllers/users/verify-account.controller'
+import { LambdaFileSignerService } from '@/infra/integrations/lambda-file-signer.service'
+import { NoopFileSignerService } from '@/infra/integrations/noop-file-signer.service'
+import { NoopProfileImageProcessorService } from '@/infra/images/noop-profile-image-processor.service'
+import { SharpProfileImageProcessorService } from '@/infra/images/sharp-profile-image-processor.service'
+import { NoopStorageService } from '@/infra/storage/noop-storage.service'
+import { S3StorageService } from '@/infra/storage/s3-storage.service'
 
 @Module({
   controllers: [
@@ -69,6 +89,7 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
     FetchUsersController,
     UpdateUserStatusController,
     UpdateProfileController,
+    UploadUserProfilePhotoController,
     SoftDeleteProfileController,
   ],
   providers: [
@@ -77,6 +98,12 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
     JwtSessionTokenService,
     LambdaTransactionalEmailService,
     NoopTransactionalEmailService,
+    LambdaFileSignerService,
+    NoopFileSignerService,
+    S3StorageService,
+    NoopStorageService,
+    SharpProfileImageProcessorService,
+    NoopProfileImageProcessorService,
     {
       provide: UserRepositoryToken,
       useClass: PrismaUserRepository,
@@ -104,6 +131,45 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
           : lambdaEmailService
       },
       inject: [LambdaTransactionalEmailService, NoopTransactionalEmailService],
+    },
+    {
+      provide: StorageServiceToken,
+      useFactory: (
+        s3StorageService: S3StorageService,
+        noopStorageService: NoopStorageService,
+      ): StorageService => {
+        return process.env.NODE_ENV === 'test'
+          ? noopStorageService
+          : s3StorageService
+      },
+      inject: [S3StorageService, NoopStorageService],
+    },
+    {
+      provide: FileSignerServiceToken,
+      useFactory: (
+        lambdaFileSignerService: LambdaFileSignerService,
+        noopFileSignerService: NoopFileSignerService,
+      ): FileSignerService => {
+        return process.env.NODE_ENV === 'test'
+          ? noopFileSignerService
+          : lambdaFileSignerService
+      },
+      inject: [LambdaFileSignerService, NoopFileSignerService],
+    },
+    {
+      provide: ProfileImageProcessorServiceToken,
+      useFactory: (
+        sharpProfileImageProcessorService: SharpProfileImageProcessorService,
+        noopProfileImageProcessorService: NoopProfileImageProcessorService,
+      ): ProfileImageProcessorService => {
+        return process.env.NODE_ENV === 'test'
+          ? noopProfileImageProcessorService
+          : sharpProfileImageProcessorService
+      },
+      inject: [
+        SharpProfileImageProcessorService,
+        NoopProfileImageProcessorService,
+      ],
     },
     {
       provide: IssueAccountVerificationUseCase,
@@ -230,6 +296,27 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
       inject: [UserRepositoryToken],
     },
     {
+      provide: UploadUserProfilePhotoUseCase,
+      useFactory: (
+        repo: UserRepository,
+        storageService: StorageService,
+        fileSignerService: FileSignerService,
+        profileImageProcessorService: ProfileImageProcessorService,
+      ) =>
+        new UploadUserProfilePhotoUseCase(
+          repo,
+          storageService,
+          fileSignerService,
+          profileImageProcessorService,
+        ),
+      inject: [
+        UserRepositoryToken,
+        StorageServiceToken,
+        FileSignerServiceToken,
+        ProfileImageProcessorServiceToken,
+      ],
+    },
+    {
       provide: SoftDeleteUserUseCase,
       useFactory: (repo: UserRepository) => new SoftDeleteUserUseCase(repo),
       inject: [UserRepositoryToken],
@@ -247,6 +334,7 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
     FetchUsersUseCase,
     UpdateUserStatusUseCase,
     UpdateUserUseCase,
+    UploadUserProfilePhotoUseCase,
     SoftDeleteUserUseCase,
     UserRepositoryToken,
     SessionRepositoryToken,
@@ -256,3 +344,4 @@ import { VerifyAccountController } from '../controllers/users/verify-account.con
   ],
 })
 export class UsersModule {}
+

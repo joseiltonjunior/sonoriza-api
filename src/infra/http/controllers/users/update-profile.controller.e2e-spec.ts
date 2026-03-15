@@ -28,7 +28,6 @@ describe('Update profile (E2E)', () => {
       .send({
         name: 'Updated User',
         email: `updated-${Date.now()}@example.com`,
-        photoUrl: 'https://cdn.example.com/profiles/updated.jpg',
       })
 
     const userOnDatabase = await prisma.user.findUnique({
@@ -39,8 +38,6 @@ describe('Update profile (E2E)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(userOnDatabase?.name).toBe('Updated User')
-    expect(userOnDatabase?.photoUrl).toBe(
-      'https://cdn.example.com/profiles/updated.jpg',
-    )
+    expect(userOnDatabase?.photoUrl).toBeNull()
   })
 })

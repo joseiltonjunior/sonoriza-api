@@ -1,6 +1,6 @@
-import { SignFileUrlDTO } from '../dtos/sign-file-url.dto'
+﻿import { SignFileUrlDTO } from '../dtos/sign-file-url.dto'
 import { SignFileUrlResponseDTO } from '../dtos/sign-file-url-response.dto'
-import { FileSignerService } from './file-signer.service'
+import { FileSignerService } from '../ports/file-signer.service'
 
 export class SignFileUrlUseCase {
   constructor(private readonly fileSignerService: FileSignerService) {}
@@ -13,3 +13,4 @@ export class SignFileUrlUseCase {
     }
   }
 }
+
